@@ -67,7 +67,7 @@ CREATE POLICY "activities: rep registra atividades em seus contatos"
   ON public.activities FOR INSERT
   WITH CHECK (
     performed_by = auth.uid()
-    OR EXISTS (
+    AND EXISTS (
       SELECT 1 FROM public.contacts c
       WHERE c.id = contact_id AND c.owner_id = auth.uid()
     )

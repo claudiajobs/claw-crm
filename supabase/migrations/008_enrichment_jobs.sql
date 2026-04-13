@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.enrichment_jobs (
   provider      text        CHECK (provider IN ('apollo', 'hunter', 'proxycurl')),
   raw_response  jsonb,
   error         text,
-  triggered_by  text,
+  triggered_by  text        CHECK (triggered_by IN ('manual', 'auto_create', 'robot_sdr')),
   created_at    timestamptz NOT NULL DEFAULT now(),
   updated_at    timestamptz NOT NULL DEFAULT now()
 );

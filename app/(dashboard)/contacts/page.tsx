@@ -26,6 +26,11 @@ const TYPE_LABEL: Record<string, string> = {
 
 const PAGE_SIZE = 25
 
+interface CursorData {
+  created_at: string
+  id: string
+}
+
 interface ContactsPageProps {
   searchParams: Promise<{ cursor?: string }>
 }
@@ -34,14 +39,26 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
   const supabase = await createClient()
   const { cursor } = await searchParams
 
+  let parsedCursor: CursorData | null = null
+  if (cursor) {
+    try {
+      parsedCursor = JSON.parse(decodeURIComponent(cursor)) as CursorData
+    } catch {
+      // invalid cursor — ignore
+    }
+  }
+
   let query = supabase
     .from('contacts')
     .select('id, first_name, last_name, whatsapp_number, instagram_handle, preferred_channel, type, status, territory, created_at')
     .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .limit(PAGE_SIZE + 1)
 
-  if (cursor) {
-    query = query.lt('created_at', cursor)
+  if (parsedCursor) {
+    query = query.or(
+      `created_at.lt.${parsedCursor.created_at},and(created_at.eq.${parsedCursor.created_at},id.lt.${parsedCursor.id})`
+    )
   }
 
   const { data: rows, error } = await query
@@ -49,7 +66,11 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
   const contacts = rows ?? []
   const hasMore = contacts.length > PAGE_SIZE
   const page = hasMore ? contacts.slice(0, PAGE_SIZE) : contacts
-  const nextCursor = hasMore ? page[page.length - 1].created_at : null
+  const lastItem = page[page.length - 1]
+  const nextCursor =
+    hasMore && lastItem
+      ? JSON.stringify({ created_at: lastItem.created_at, id: lastItem.id })
+      : null
 
   return (
     <div>
