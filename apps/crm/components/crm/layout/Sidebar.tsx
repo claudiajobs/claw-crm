@@ -43,7 +43,7 @@ export default function Sidebar() {
 
       {/* Rodapé */}
       <div className="px-6 py-4 border-t border-gray-700">
-        <p className="text-xs text-gray-500">v0.3.0 — Sprint 3</p>
+        <p className="text-xs text-gray-500">v0.4.0 — Sprint 4</p>
       </div>
     </aside>
   )

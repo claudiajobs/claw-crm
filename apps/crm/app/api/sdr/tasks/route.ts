@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
 
   if (!assignedTo) {
     return NextResponse.json(
-      { erro: 'Não foi possível determinar o responsável pela tarefa' },
-      { status: 422 }
+      { erro: 'assigned_to não encontrado: lead ou contato informado não possui owner_id definido' },
+      { status: 400 }
     )
   }
 

@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
 
   if (!resolvedContactId) {
     return NextResponse.json(
-      { erro: 'Campo obrigatório: contact_id ou whatsapp_number/instagram_handle' },
+      { erro: 'contact_id ou canal de contato (whatsapp_number ou instagram_handle) é obrigatório' },
       { status: 400 }
     )
   }
