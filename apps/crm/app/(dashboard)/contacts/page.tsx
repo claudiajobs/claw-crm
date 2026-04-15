@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import ContactSearch from '@/components/crm/contacts/ContactSearch'
 
 const STATUS_LABEL: Record<string, string> = {
   lead: 'Lead',
@@ -32,12 +33,13 @@ interface CursorData {
 }
 
 interface ContactsPageProps {
-  searchParams: Promise<{ cursor?: string }>
+  searchParams: Promise<{ cursor?: string; q?: string }>
 }
 
 export default async function ContactsPage({ searchParams }: ContactsPageProps) {
   const supabase = await createClient()
-  const { cursor } = await searchParams
+  const { cursor, q } = await searchParams
+  const searchQuery = q?.trim() ?? ''
 
   let parsedCursor: CursorData | null = null
   if (cursor) {
@@ -54,6 +56,13 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(PAGE_SIZE + 1)
+
+  // Full-text search or ilike fallback
+  if (searchQuery) {
+    query = query.or(
+      `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%`
+    )
+  }
 
   if (parsedCursor) {
     query = query.or(
@@ -72,9 +81,18 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
       ? JSON.stringify({ created_at: lastItem.created_at, id: lastItem.id })
       : null
 
+  const buildHref = (params: Record<string, string | null>) => {
+    const sp = new URLSearchParams()
+    if (searchQuery && params.cursor !== undefined) sp.set('q', searchQuery)
+    if (params.q) sp.set('q', params.q)
+    if (params.cursor) sp.set('cursor', params.cursor)
+    const qs = sp.toString()
+    return `/contacts${qs ? `?${qs}` : ''}`
+  }
+
   return (
     <div>
-      {/* Cabeçalho da página */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-900">Contatos</h1>
         <Link
@@ -86,23 +104,32 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
         </Link>
       </div>
 
-      {/* Erro de carregamento */}
+      {/* Search */}
+      <div className="mb-4">
+        <ContactSearch defaultValue={searchQuery} />
+      </div>
+
+      {/* Error */}
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 mb-4">
           <p className="text-sm text-red-700">Erro ao carregar contatos: {error.message}</p>
         </div>
       )}
 
-      {/* Tabela */}
+      {/* Table */}
       {page.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
-          <p className="text-gray-400 text-sm">Nenhum contato encontrado.</p>
-          <Link
-            href="/contacts/novo"
-            className="mt-4 inline-block text-sm text-red-600 hover:underline"
-          >
-            Criar primeiro contato
-          </Link>
+          <p className="text-gray-400 text-sm">
+            {searchQuery ? 'Nenhum contato encontrado para a busca.' : 'Nenhum contato encontrado.'}
+          </p>
+          {!searchQuery && (
+            <Link
+              href="/contacts/novo"
+              className="mt-4 inline-block text-sm text-red-600 hover:underline"
+            >
+              Criar primeiro contato
+            </Link>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -133,17 +160,24 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
                   .join(' ')
 
                 const channelDisplay = contact.whatsapp_number
-                  ? `💬 ${contact.whatsapp_number}`
+                  ? `WhatsApp ${contact.whatsapp_number}`
                   : contact.instagram_handle
-                  ? `📸 ${contact.instagram_handle}`
-                  : '—'
+                  ? `Instagram ${contact.instagram_handle}`
+                  : '\u2014'
 
                 return (
                   <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">{fullName}</td>
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      <Link
+                        href={`/contacts/${contact.id}`}
+                        className="hover:text-red-600 transition-colors"
+                      >
+                        {fullName}
+                      </Link>
+                    </td>
                     <td className="px-6 py-4 text-gray-600">{channelDisplay}</td>
                     <td className="px-6 py-4 text-gray-600">
-                      {contact.type ? TYPE_LABEL[contact.type] ?? contact.type : '—'}
+                      {contact.type ? TYPE_LABEL[contact.type] ?? contact.type : '\u2014'}
                     </td>
                     <td className="px-6 py-4">
                       <span
@@ -154,7 +188,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500">
-                      {contact.territory ?? '—'}
+                      {contact.territory ?? '\u2014'}
                     </td>
                   </tr>
                 )
@@ -162,15 +196,15 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
             </tbody>
           </table>
 
-          {/* Paginação cursor-based */}
+          {/* Pagination */}
           {(cursor || hasMore) && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
               {cursor ? (
                 <Link
-                  href="/contacts"
+                  href={buildHref({ cursor: null })}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
-                  ← Primeira página
+                  &larr; Primeira página
                 </Link>
               ) : (
                 <span />
@@ -178,10 +212,10 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
 
               {nextCursor && (
                 <Link
-                  href={`/contacts?cursor=${encodeURIComponent(nextCursor)}`}
+                  href={buildHref({ cursor: encodeURIComponent(nextCursor) })}
                   className="text-sm text-red-600 hover:text-red-700 font-medium"
                 >
-                  Próxima página →
+                  Próxima página &rarr;
                 </Link>
               )}
             </div>
