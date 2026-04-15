@@ -69,3 +69,36 @@ export async function createContact(formData: FormData) {
   revalidatePath('/contacts')
   redirect('/contacts')
 }
+
+export async function updateContact(
+  contactId: string,
+  fields: {
+    first_name?: string
+    last_name?: string
+    whatsapp_number?: string
+    instagram_handle?: string
+    preferred_channel?: ContactChannel
+    type?: ContactType
+    territory?: string
+    notes?: string
+    job_title?: string
+    phone?: string
+  }
+) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { error } = await supabase
+    .from('contacts')
+    .update(fields)
+    .eq('id', contactId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/contacts/${contactId}`)
+  revalidatePath('/contacts')
+  return { success: true }
+}
