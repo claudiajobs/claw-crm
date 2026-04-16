@@ -21,7 +21,7 @@ export async function createContact(formData: FormData) {
   const whatsapp_number = (formData.get('whatsapp_number') as string | null)?.trim() || undefined
   const instagram_handle = (formData.get('instagram_handle') as string | null)?.trim() || undefined
   const preferred_channel = (formData.get('preferred_channel') as ContactChannel | null) || undefined
-  const type = (formData.get('type') as string | null)?.trim() || undefined
+  const classification = (formData.get('classification') as string | null)?.trim() || undefined
   const territory = (formData.get('territory') as string | null)?.trim() || undefined
   const entity_type = ((formData.get('entity_type') as string | null)?.trim() || 'individual') as EntityType
 
@@ -66,7 +66,7 @@ export async function createContact(formData: FormData) {
     whatsapp_number,
     instagram_handle,
     preferred_channel,
-    type,
+    classification,
     territory,
     entity_type,
     details,
@@ -92,7 +92,7 @@ export async function updateContact(
     whatsapp_number?: string
     instagram_handle?: string
     preferred_channel?: ContactChannel
-    type?: string
+    classification?: string
     territory?: string
     notes?: string
     job_title?: string

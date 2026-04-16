@@ -110,7 +110,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const { data: contact } = await supabase
     .from('contacts')
     .select(
-      'id, first_name, last_name, job_title, whatsapp_number, instagram_handle, phone, preferred_channel, type, status, source, territory, tags, notes, enriched_at, entity_type, details, created_by, account_id, created_at'
+      'id, first_name, last_name, job_title, whatsapp_number, instagram_handle, phone, preferred_channel, classification, status, source, territory, tags, notes, enriched_at, entity_type, details, created_by, account_id, created_at'
     )
     .eq('id', id)
     .single()
@@ -237,11 +237,11 @@ export default async function ContactPage({ params }: ContactPageProps) {
                 </dd>
               </div>
             )}
-            {contact.type && (
+            {contact.classification && (
               <div>
                 <dt className="text-xs text-gray-500">Tipo</dt>
                 <dd className="mt-0.5 text-sm font-medium text-gray-900">
-                  {TYPE_LABEL[contact.type] ?? contact.type}
+                  {TYPE_LABEL[contact.classification] ?? contact.classification}
                 </dd>
               </div>
             )}

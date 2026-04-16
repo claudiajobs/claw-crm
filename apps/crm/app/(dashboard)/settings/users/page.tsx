@@ -18,13 +18,7 @@ export default async function UsersPage() {
     .single()
 
   if (profile?.role !== 'admin') {
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
-        <p className="text-gray-500 text-sm">
-          Apenas administradores podem gerenciar usuarios.
-        </p>
-      </div>
-    )
+    redirect('/pipeline')
   }
 
   const { data: usersRows } = await supabase

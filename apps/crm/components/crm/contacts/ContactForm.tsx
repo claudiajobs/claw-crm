@@ -158,10 +158,10 @@ export default function ContactForm({ erro }: ContactFormProps) {
 
       {/* Tipo */}
       <div>
-        <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="classification" className="block text-sm font-medium text-gray-700 mb-1">
           Tipo
         </label>
-        <select id="type" name="type" className={selectClass}>
+        <select id="classification" name="classification" className={selectClass}>
           <option value="">Selecione...</option>
           {types.map((t) => (
             <option key={t.value} value={t.value}>

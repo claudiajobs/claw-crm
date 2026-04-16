@@ -51,6 +51,18 @@ export async function signup(formData: FormData) {
     redirect('/signup?erro=Senha+deve+ter+pelo+menos+6+caracteres')
   }
 
+  // Check for existing user with same email
+  const serviceClient = createServiceClient()
+  const { data: existingUser } = await serviceClient
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (existingUser) {
+    redirect('/signup?erro=Este+email+já+está+registrado')
+  }
+
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,

@@ -33,14 +33,14 @@ async function fetchScoringInput(
     // accounts is now a view over contacts WHERE entity_type='company'
     const { data } = await supabase
       .from('contacts')
-      .select('type, details')
+      .select('classification, details')
       .eq('id', contact.account_id)
       .eq('entity_type', 'company')
       .single()
     if (data) {
       const details = (data.details ?? {}) as Record<string, unknown>
       account = {
-        type: data.type,
+        type: data.classification,
         payment_terms: (details.payment_terms as string) ?? null,
       }
     }

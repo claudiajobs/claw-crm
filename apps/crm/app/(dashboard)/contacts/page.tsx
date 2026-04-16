@@ -58,7 +58,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
 
   let query = supabase
     .from('contacts')
-    .select('id, first_name, last_name, whatsapp_number, instagram_handle, preferred_channel, type, status, territory, entity_type, created_at')
+    .select('id, first_name, last_name, whatsapp_number, instagram_handle, preferred_channel, classification, status, territory, entity_type, created_at')
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(PAGE_SIZE + 1)
@@ -188,7 +188,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
                     </td>
                     <td className="px-6 py-4 text-gray-600">{channelDisplay}</td>
                     <td className="px-6 py-4 text-gray-600">
-                      {contact.type ? TYPE_LABEL[contact.type] ?? contact.type : '\u2014'}
+                      {contact.classification ? TYPE_LABEL[contact.classification] ?? contact.classification : '\u2014'}
                     </td>
                     <td className="px-6 py-4">
                       <span
