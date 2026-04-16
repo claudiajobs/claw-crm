@@ -69,7 +69,7 @@ export async function createLead(formData: FormData) {
   if (!user) redirect('/login')
 
   const title = (formData.get('title') as string | null)?.trim() ?? ''
-  const contact_id = (formData.get('contact_id') as string | null)?.trim() ?? ''
+  let contact_id = (formData.get('contact_id') as string | null)?.trim() ?? ''
   const status = (formData.get('status') as LeadStatus | null) ?? 'novo'
   const rawValue = formData.get('value') as string | null
   const value = rawValue ? Number(rawValue) : null
@@ -82,8 +82,39 @@ export async function createLead(formData: FormData) {
   const estimated_volume_liters = rawVolume ? Number(rawVolume) : null
   const project_type = (formData.get('project_type') as string | null) || null
 
+  // Quick contact creation fields
+  const quickContactName = (formData.get('quick_contact_name') as string | null)?.trim() ?? ''
+  const quickContactChannel = (formData.get('quick_contact_channel') as string | null)?.trim() ?? ''
+
   if (!title) redirect('/leads/new?erro=Título+é+obrigatório')
-  if (!contact_id) redirect('/leads/new?erro=Contato+é+obrigatório')
+
+  // If no contact selected, try quick-create
+  if (!contact_id) {
+    if (!quickContactName || !quickContactChannel) {
+      redirect('/leads/new?erro=Selecione+um+contato+ou+preencha+o+contato+rápido+(nome+e+canal)')
+    }
+    // Determine channel type
+    const isWhatsApp = quickContactChannel.startsWith('+') || /^\d/.test(quickContactChannel)
+    const { data: newContact, error: contactError } = await supabase
+      .from('contacts')
+      .insert({
+        first_name: quickContactName,
+        whatsapp_number: isWhatsApp ? quickContactChannel : undefined,
+        instagram_handle: !isWhatsApp ? quickContactChannel : undefined,
+        preferred_channel: isWhatsApp ? 'whatsapp' : 'instagram',
+        owner_id: user.id,
+        created_by: user.id,
+        source: 'manual',
+        status: 'lead',
+      })
+      .select('id')
+      .single()
+
+    if (contactError || !newContact) {
+      redirect(`/leads/new?erro=${encodeURIComponent('Erro ao criar contato rápido: ' + (contactError?.message ?? 'desconhecido'))}`)
+    }
+    contact_id = newContact.id
+  }
 
   const { data: lead, error } = await supabase
     .from('leads')
