@@ -1,35 +1,47 @@
 import Link from 'next/link'
-import { login } from '@/lib/actions/auth'
+import { signup } from '@/lib/actions/auth'
 
-interface LoginPageProps {
-  searchParams: Promise<{ next?: string; erro?: string }>
+interface SignupPageProps {
+  searchParams: Promise<{ erro?: string }>
 }
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function SignupPage({ searchParams }: SignupPageProps) {
   const { erro } = await searchParams
 
   return (
     <div className="w-full max-w-md">
       <div className="bg-white rounded-2xl shadow-lg px-8 py-10">
-        {/* Logo / Marca */}
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold text-gray-900">CLAW CRM</h1>
-          <p className="text-sm text-gray-500 mt-1">Acesse sua conta</p>
+          <p className="text-sm text-gray-500 mt-1">Crie sua conta</p>
         </div>
 
-        {/* Mensagem de erro */}
         {erro && (
           <div className="mb-6 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
             <p className="text-sm text-red-700">{erro}</p>
           </div>
         )}
 
-        <form action={login} className="space-y-5">
+        <form action={signup} className="space-y-5">
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Nome completo
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              required
+              placeholder="Seu nome"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                         text-gray-900 placeholder-gray-400
+                         focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               E-mail
             </label>
             <input
@@ -46,19 +58,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Senha
             </label>
             <input
               id="password"
               name="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               required
-              placeholder="••••••••"
+              minLength={6}
+              placeholder="Minimo 6 caracteres"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
                          text-gray-900 placeholder-gray-400
                          focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
@@ -72,14 +82,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                        focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
                        transition-colors"
           >
-            Entrar
+            Criar conta
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-500">
-          Nao tem conta?{' '}
-          <Link href="/signup" className="text-red-600 hover:underline font-medium">
-            Criar conta
+          Ja tem conta?{' '}
+          <Link href="/login" className="text-red-600 hover:underline font-medium">
+            Entrar
           </Link>
         </p>
       </div>
