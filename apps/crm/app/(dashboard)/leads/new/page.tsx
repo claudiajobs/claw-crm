@@ -31,7 +31,7 @@ export default async function NewLeadPage({ searchParams }: NewLeadPageProps) {
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-gray-900">Novo Lead</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Título e contato são obrigatórios. O score é calculado automaticamente.
+          Apenas o título é obrigatório. Selecione um contato ou crie um rapidamente.
         </p>
       </div>
 

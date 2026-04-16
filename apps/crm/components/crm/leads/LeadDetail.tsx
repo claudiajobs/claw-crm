@@ -42,6 +42,7 @@ interface LeadDetailProps {
     decision_timeline: string | null
     estimated_volume_liters: number | null
     created_at: string
+    created_by_label: string | null
     contacts: { first_name: string; last_name: string | null; preferred_channel: string | null } | null
   }
   activities: Activity[]
@@ -122,6 +123,12 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore }:
               {new Date(lead.created_at).toLocaleDateString('pt-BR')}
             </dd>
           </div>
+          {lead.created_by_label && (
+            <div>
+              <dt className="text-xs text-gray-500">Criado por</dt>
+              <dd className="mt-0.5 text-sm text-gray-700">{lead.created_by_label}</dd>
+            </div>
+          )}
         </dl>
       </div>
 

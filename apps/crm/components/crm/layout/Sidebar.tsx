@@ -1,21 +1,40 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
 interface NavItem {
   href: string
   label: string
   icon: string
+  adminOnly?: boolean
 }
 
 const navItems: NavItem[] = [
   { href: '/pipeline', label: 'Pipeline', icon: '📊' },
   { href: '/leads', label: 'Leads', icon: '🎯' },
   { href: '/contacts', label: 'Contatos', icon: '👥' },
-  { href: '/accounts', label: 'Contas', icon: '🏢' },
   { href: '/tasks', label: 'Tarefas', icon: '✅' },
   { href: '/settings', label: 'Configurações', icon: '⚙️' },
+  { href: '/settings/users', label: 'Usuários', icon: '🔑', adminOnly: true },
 ]
 
-export default function Sidebar() {
+export default async function Sidebar() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    isAdmin = profile?.role === 'admin'
+  }
+
+  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin)
+
   return (
     <aside className="w-60 min-h-screen bg-gray-900 flex flex-col">
       {/* Marca */}
@@ -27,7 +46,7 @@ export default function Sidebar() {
 
       {/* Navegação */}
       <nav className="flex-1 px-3 py-4 space-y-1">
-        {navItems.map((item) => (
+        {visibleItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -43,7 +62,7 @@ export default function Sidebar() {
 
       {/* Rodapé */}
       <div className="px-6 py-4 border-t border-gray-700">
-        <p className="text-xs text-gray-500">v0.4.0 — Sprint 4</p>
+        <p className="text-xs text-gray-500">v0.5.0 — Sprint 5</p>
       </div>
     </aside>
   )

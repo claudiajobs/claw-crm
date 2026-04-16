@@ -54,6 +54,46 @@ const LEAD_STATUS_LABEL: Record<string, string> = {
   perdido: 'Perdido',
 }
 
+function CompanyDetails({ details: d }: { details: Record<string, string | number | null> }) {
+  const fields: Array<{ key: string; label: string; format?: 'currency' | 'volume' }> = [
+    { key: 'cnpj', label: 'CNPJ' },
+    { key: 'razao_social', label: 'Razao social' },
+    { key: 'responsible_name', label: 'Responsavel' },
+    { key: 'responsible_whatsapp', label: 'WhatsApp responsavel' },
+    { key: 'payment_terms', label: 'Prazo de pagamento' },
+    { key: 'credit_limit', label: 'Limite de credito', format: 'currency' },
+    { key: 'annual_volume_liters', label: 'Volume anual', format: 'volume' },
+    { key: 'region', label: 'Regiao' },
+  ]
+
+  const visible = fields.filter((f) => d[f.key] != null && d[f.key] !== '')
+  if (visible.length === 0) return null
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">Dados da empresa</h3>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+        {visible.map((f) => {
+          let display: string
+          if (f.format === 'currency') {
+            display = Number(d[f.key]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+          } else if (f.format === 'volume') {
+            display = `${Number(d[f.key]).toLocaleString('pt-BR')} L`
+          } else {
+            display = String(d[f.key])
+          }
+          return (
+            <div key={f.key}>
+              <dt className="text-xs text-gray-500">{f.label}</dt>
+              <dd className="mt-0.5 text-sm font-medium text-gray-900">{display}</dd>
+            </div>
+          )
+        })}
+      </dl>
+    </div>
+  )
+}
+
 interface ContactPageProps {
   params: Promise<{ id: string }>
 }
@@ -70,7 +110,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const { data: contact } = await supabase
     .from('contacts')
     .select(
-      'id, first_name, last_name, job_title, whatsapp_number, instagram_handle, phone, preferred_channel, type, status, source, territory, tags, notes, enriched_at, account_id, created_at, accounts(id, name)'
+      'id, first_name, last_name, job_title, whatsapp_number, instagram_handle, phone, preferred_channel, classification, status, source, territory, tags, notes, enriched_at, entity_type, details, created_by, account_id, created_at'
     )
     .eq('id', id)
     .single()
@@ -101,7 +141,37 @@ export default async function ContactPage({ params }: ContactPageProps) {
     users: Array.isArray(a.users) ? a.users[0] ?? null : a.users ?? null,
   }))
 
-  const account = Array.isArray(contact.accounts) ? contact.accounts[0] : contact.accounts
+  // Fetch creator info
+  let creatorLabel: string | null = null
+  if (contact.created_by) {
+    const { data: creator } = await supabase
+      .from('users')
+      .select('name, role')
+      .eq('id', contact.created_by)
+      .single()
+    if (creator) {
+      creatorLabel = creator.role === 'sdr'
+        ? `SDR ${creator.name}`
+        : creator.name
+    }
+  }
+
+  // Fetch associated company contact if account_id exists
+  let accountName: string | null = null
+  let accountId: string | null = null
+  if (contact.account_id) {
+    const { data: acct } = await supabase
+      .from('contacts')
+      .select('id, first_name')
+      .eq('id', contact.account_id)
+      .eq('entity_type', 'company')
+      .single()
+    if (acct) {
+      accountName = acct.first_name
+      accountId = acct.id
+    }
+  }
+
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ')
 
   return (
@@ -167,11 +237,11 @@ export default async function ContactPage({ params }: ContactPageProps) {
                 </dd>
               </div>
             )}
-            {contact.type && (
+            {contact.classification && (
               <div>
                 <dt className="text-xs text-gray-500">Tipo</dt>
                 <dd className="mt-0.5 text-sm font-medium text-gray-900">
-                  {TYPE_LABEL[contact.type] ?? contact.type}
+                  {TYPE_LABEL[contact.classification] ?? contact.classification}
                 </dd>
               </div>
             )}
@@ -195,6 +265,12 @@ export default async function ContactPage({ params }: ContactPageProps) {
                 {new Date(contact.created_at).toLocaleDateString('pt-BR')}
               </dd>
             </div>
+            {creatorLabel && (
+              <div>
+                <dt className="text-xs text-gray-500">Criado por</dt>
+                <dd className="mt-0.5 text-sm text-gray-700">{creatorLabel}</dd>
+              </div>
+            )}
           </dl>
 
           {contact.notes && (
@@ -205,15 +281,20 @@ export default async function ContactPage({ params }: ContactPageProps) {
           )}
         </div>
 
-        {/* Account */}
-        {account && (
+        {/* Company details */}
+        {contact.entity_type === 'company' && contact.details != null && (
+          <CompanyDetails details={contact.details as Record<string, string | number | null>} />
+        )}
+
+        {/* Associated company */}
+        {accountName && accountId && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Conta associada</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Empresa associada</h3>
             <Link
-              href={`/accounts/${account.id}`}
+              href={`/contacts/${accountId}`}
               className="text-sm text-red-600 hover:underline font-medium"
             >
-              {account.name}
+              {accountName}
             </Link>
           </div>
         )}

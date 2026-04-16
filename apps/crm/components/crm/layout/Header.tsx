@@ -16,7 +16,13 @@ export default async function Header() {
     : { data: null }
 
   const displayName = profile?.name ?? user?.email ?? 'Usuário'
-  const roleLabel = profile?.role === 'admin' ? 'Admin' : 'Representante'
+  const ROLE_LABELS: Record<string, string> = {
+    admin: 'Admin',
+    editor: 'Editor',
+    vendedor: 'Vendedor',
+    sdr: 'SDR',
+  }
+  const roleLabel = profile?.role ? (ROLE_LABELS[profile.role] ?? profile.role) : 'Representante'
 
   return (
     <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-6">

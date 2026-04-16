@@ -22,23 +22,30 @@ export default async function LeadPage({ params }: LeadPageProps) {
   const { data: lead } = await supabase
     .from('leads')
     .select(
-      'id, title, status, score, value, product_interest, project_type, decision_timeline, estimated_volume_liters, created_at, contact_id, contacts(first_name, last_name, preferred_channel, whatsapp_number, instagram_handle, monthly_volume_liters, account_id)'
+      'id, title, status, score, value, product_interest, project_type, decision_timeline, estimated_volume_liters, created_at, created_by, contact_id, contacts(first_name, last_name, preferred_channel, whatsapp_number, instagram_handle, monthly_volume_liters, account_id)'
     )
     .eq('id', id)
     .single()
 
   if (!lead) notFound()
 
-  // Fetch account for scoring
+  // Fetch account (company contact) for scoring
   const contactData = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts
   let accountData: { type: string | null; payment_terms: string | null } | null = null
   if (contactData?.account_id) {
     const { data } = await supabase
-      .from('accounts')
-      .select('type, payment_terms')
+      .from('contacts')
+      .select('classification, details')
       .eq('id', contactData.account_id)
+      .eq('entity_type', 'company')
       .single()
-    accountData = data
+    if (data) {
+      const details = (data.details ?? {}) as Record<string, unknown>
+      accountData = {
+        type: data.classification,
+        payment_terms: (details.payment_terms as string) ?? null,
+      }
+    }
   }
 
   // Fetch latest activity for scoring
@@ -69,6 +76,21 @@ export default async function LeadPage({ params }: LeadPageProps) {
     account: accountData,
   }
   const { matchedRules } = computeLeadScore(scoringInput)
+
+  // Fetch creator info
+  let creatorLabel: string | null = null
+  if (lead.created_by) {
+    const { data: creator } = await supabase
+      .from('users')
+      .select('name, role')
+      .eq('id', lead.created_by)
+      .single()
+    if (creator) {
+      creatorLabel = creator.role === 'sdr'
+        ? `SDR ${creator.name}`
+        : creator.name
+    }
+  }
 
   // Fetch activities timeline
   const { data: activitiesRows } = await supabase
@@ -103,6 +125,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
       ? Number(lead.estimated_volume_liters)
       : null,
     created_at: lead.created_at,
+    created_by_label: creatorLabel,
     contacts: contactData
       ? {
           first_name: contactData.first_name,
