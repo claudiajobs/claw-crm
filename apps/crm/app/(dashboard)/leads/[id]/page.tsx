@@ -22,7 +22,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
   const { data: lead } = await supabase
     .from('leads')
     .select(
-      'id, title, status, score, value, product_interest, project_type, decision_timeline, estimated_volume_liters, created_at, contact_id, contacts(first_name, last_name, preferred_channel, whatsapp_number, instagram_handle, monthly_volume_liters, account_id)'
+      'id, title, status, score, value, product_interest, project_type, decision_timeline, estimated_volume_liters, created_at, created_by, contact_id, contacts(first_name, last_name, preferred_channel, whatsapp_number, instagram_handle, monthly_volume_liters, account_id)'
     )
     .eq('id', id)
     .single()
@@ -77,6 +77,21 @@ export default async function LeadPage({ params }: LeadPageProps) {
   }
   const { matchedRules } = computeLeadScore(scoringInput)
 
+  // Fetch creator info
+  let creatorLabel: string | null = null
+  if (lead.created_by) {
+    const { data: creator } = await supabase
+      .from('users')
+      .select('name, role')
+      .eq('id', lead.created_by)
+      .single()
+    if (creator) {
+      creatorLabel = creator.role === 'sdr'
+        ? `SDR ${creator.name}`
+        : creator.name
+    }
+  }
+
   // Fetch activities timeline
   const { data: activitiesRows } = await supabase
     .from('activities')
@@ -110,6 +125,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
       ? Number(lead.estimated_volume_liters)
       : null,
     created_at: lead.created_at,
+    created_by_label: creatorLabel,
     contacts: contactData
       ? {
           first_name: contactData.first_name,

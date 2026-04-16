@@ -101,6 +101,21 @@ export default async function ContactPage({ params }: ContactPageProps) {
     users: Array.isArray(a.users) ? a.users[0] ?? null : a.users ?? null,
   }))
 
+  // Fetch creator info
+  let creatorLabel: string | null = null
+  if (contact.created_by) {
+    const { data: creator } = await supabase
+      .from('users')
+      .select('name, role')
+      .eq('id', contact.created_by)
+      .single()
+    if (creator) {
+      creatorLabel = creator.role === 'sdr'
+        ? `SDR ${creator.name}`
+        : creator.name
+    }
+  }
+
   // Fetch associated company contact if account_id exists
   let accountName: string | null = null
   let accountId: string | null = null
@@ -210,6 +225,12 @@ export default async function ContactPage({ params }: ContactPageProps) {
                 {new Date(contact.created_at).toLocaleDateString('pt-BR')}
               </dd>
             </div>
+            {creatorLabel && (
+              <div>
+                <dt className="text-xs text-gray-500">Criado por</dt>
+                <dd className="mt-0.5 text-sm text-gray-700">{creatorLabel}</dd>
+              </div>
+            )}
           </dl>
 
           {contact.notes && (

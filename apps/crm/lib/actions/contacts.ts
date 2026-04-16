@@ -58,6 +58,7 @@ export async function createContact(formData: FormData) {
     type,
     territory,
     owner_id: user.id,
+    created_by: user.id,
     source: 'manual',
     status: 'lead',
   })

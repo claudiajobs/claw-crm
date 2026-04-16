@@ -97,6 +97,7 @@ export async function createLead(formData: FormData) {
       estimated_volume_liters,
       project_type,
       owner_id: user.id,
+      created_by: user.id,
       source: 'manual',
     })
     .select()

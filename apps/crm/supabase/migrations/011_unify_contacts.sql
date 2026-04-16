@@ -142,4 +142,9 @@ CREATE OR REPLACE VIEW public.accounts AS
   FROM public.contacts
   WHERE entity_type = 'company';
 
+-- ─── 8. Add created_by to leads ──────────────────────────────────────────────
+
+ALTER TABLE public.leads
+  ADD COLUMN IF NOT EXISTS created_by uuid REFERENCES public.users(id);
+
 COMMIT;
