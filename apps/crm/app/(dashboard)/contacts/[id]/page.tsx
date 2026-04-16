@@ -70,7 +70,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const { data: contact } = await supabase
     .from('contacts')
     .select(
-      'id, first_name, last_name, job_title, whatsapp_number, instagram_handle, phone, preferred_channel, type, status, source, territory, tags, notes, enriched_at, account_id, created_at, accounts(id, name)'
+      'id, first_name, last_name, job_title, whatsapp_number, instagram_handle, phone, preferred_channel, type, status, source, territory, tags, notes, enriched_at, entity_type, details, created_by, account_id, created_at'
     )
     .eq('id', id)
     .single()
@@ -101,7 +101,22 @@ export default async function ContactPage({ params }: ContactPageProps) {
     users: Array.isArray(a.users) ? a.users[0] ?? null : a.users ?? null,
   }))
 
-  const account = Array.isArray(contact.accounts) ? contact.accounts[0] : contact.accounts
+  // Fetch associated company contact if account_id exists
+  let accountName: string | null = null
+  let accountId: string | null = null
+  if (contact.account_id) {
+    const { data: acct } = await supabase
+      .from('contacts')
+      .select('id, first_name')
+      .eq('id', contact.account_id)
+      .eq('entity_type', 'company')
+      .single()
+    if (acct) {
+      accountName = acct.first_name
+      accountId = acct.id
+    }
+  }
+
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ')
 
   return (
@@ -205,15 +220,15 @@ export default async function ContactPage({ params }: ContactPageProps) {
           )}
         </div>
 
-        {/* Account */}
-        {account && (
+        {/* Associated company */}
+        {accountName && accountId && (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Conta associada</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Empresa associada</h3>
             <Link
-              href={`/accounts/${account.id}`}
+              href={`/contacts/${accountId}`}
               className="text-sm text-red-600 hover:underline font-medium"
             >
-              {account.name}
+              {accountName}
             </Link>
           </div>
         )}

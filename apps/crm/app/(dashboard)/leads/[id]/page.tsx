@@ -29,16 +29,23 @@ export default async function LeadPage({ params }: LeadPageProps) {
 
   if (!lead) notFound()
 
-  // Fetch account for scoring
+  // Fetch account (company contact) for scoring
   const contactData = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts
   let accountData: { type: string | null; payment_terms: string | null } | null = null
   if (contactData?.account_id) {
     const { data } = await supabase
-      .from('accounts')
-      .select('type, payment_terms')
+      .from('contacts')
+      .select('type, details')
       .eq('id', contactData.account_id)
+      .eq('entity_type', 'company')
       .single()
-    accountData = data
+    if (data) {
+      const details = (data.details ?? {}) as Record<string, unknown>
+      accountData = {
+        type: data.type,
+        payment_terms: (details.payment_terms as string) ?? null,
+      }
+    }
   }
 
   // Fetch latest activity for scoring

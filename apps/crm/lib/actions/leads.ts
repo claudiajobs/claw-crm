@@ -30,12 +30,20 @@ async function fetchScoringInput(
 
   let account: LeadScoringInput['account'] = null
   if (contact?.account_id) {
+    // accounts is now a view over contacts WHERE entity_type='company'
     const { data } = await supabase
-      .from('accounts')
-      .select('type, payment_terms')
+      .from('contacts')
+      .select('type, details')
       .eq('id', contact.account_id)
+      .eq('entity_type', 'company')
       .single()
-    account = data
+    if (data) {
+      const details = (data.details ?? {}) as Record<string, unknown>
+      account = {
+        type: data.type,
+        payment_terms: (details.payment_terms as string) ?? null,
+      }
+    }
   }
 
   return {
