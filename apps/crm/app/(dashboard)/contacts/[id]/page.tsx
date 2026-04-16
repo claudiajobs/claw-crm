@@ -54,6 +54,46 @@ const LEAD_STATUS_LABEL: Record<string, string> = {
   perdido: 'Perdido',
 }
 
+function CompanyDetails({ details: d }: { details: Record<string, string | number | null> }) {
+  const fields: Array<{ key: string; label: string; format?: 'currency' | 'volume' }> = [
+    { key: 'cnpj', label: 'CNPJ' },
+    { key: 'razao_social', label: 'Razao social' },
+    { key: 'responsible_name', label: 'Responsavel' },
+    { key: 'responsible_whatsapp', label: 'WhatsApp responsavel' },
+    { key: 'payment_terms', label: 'Prazo de pagamento' },
+    { key: 'credit_limit', label: 'Limite de credito', format: 'currency' },
+    { key: 'annual_volume_liters', label: 'Volume anual', format: 'volume' },
+    { key: 'region', label: 'Regiao' },
+  ]
+
+  const visible = fields.filter((f) => d[f.key] != null && d[f.key] !== '')
+  if (visible.length === 0) return null
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">Dados da empresa</h3>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+        {visible.map((f) => {
+          let display: string
+          if (f.format === 'currency') {
+            display = Number(d[f.key]).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+          } else if (f.format === 'volume') {
+            display = `${Number(d[f.key]).toLocaleString('pt-BR')} L`
+          } else {
+            display = String(d[f.key])
+          }
+          return (
+            <div key={f.key}>
+              <dt className="text-xs text-gray-500">{f.label}</dt>
+              <dd className="mt-0.5 text-sm font-medium text-gray-900">{display}</dd>
+            </div>
+          )
+        })}
+      </dl>
+    </div>
+  )
+}
+
 interface ContactPageProps {
   params: Promise<{ id: string }>
 }
@@ -240,6 +280,11 @@ export default async function ContactPage({ params }: ContactPageProps) {
             </div>
           )}
         </div>
+
+        {/* Company details */}
+        {contact.entity_type === 'company' && contact.details != null && (
+          <CompanyDetails details={contact.details as Record<string, string | number | null>} />
+        )}
 
         {/* Associated company */}
         {accountName && accountId && (

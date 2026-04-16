@@ -23,6 +23,12 @@ const TYPE_LABEL: Record<string, string> = {
   arquiteto: 'Arquiteto',
   distribuidor: 'Distribuidor',
   construtora: 'Construtora',
+  loja_materiais: 'Loja de Materiais',
+}
+
+const ENTITY_LABEL: Record<string, string> = {
+  individual: 'Pessoa',
+  company: 'Empresa',
 }
 
 const PAGE_SIZE = 25
@@ -52,7 +58,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
 
   let query = supabase
     .from('contacts')
-    .select('id, first_name, last_name, whatsapp_number, instagram_handle, preferred_channel, type, status, territory, created_at')
+    .select('id, first_name, last_name, whatsapp_number, instagram_handle, preferred_channel, type, status, territory, entity_type, created_at')
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(PAGE_SIZE + 1)
@@ -174,6 +180,11 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
                       >
                         {fullName}
                       </Link>
+                      {contact.entity_type === 'company' && (
+                        <span className="ml-2 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700">
+                          Empresa
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-gray-600">{channelDisplay}</td>
                     <td className="px-6 py-4 text-gray-600">

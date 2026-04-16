@@ -5,23 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 type ContactChannel = 'whatsapp' | 'instagram' | 'telefone'
-type ContactType =
-  | 'pintor_autonomo'
-  | 'empreiteiro'
-  | 'engenheiro'
-  | 'arquiteto'
-  | 'distribuidor'
-  | 'construtora'
-
-export interface CreateContactInput {
-  first_name: string
-  last_name?: string
-  whatsapp_number?: string
-  instagram_handle?: string
-  preferred_channel?: ContactChannel
-  type?: ContactType
-  territory?: string
-}
+type EntityType = 'individual' | 'company'
 
 export async function createContact(formData: FormData) {
   const supabase = await createClient()
@@ -37,10 +21,11 @@ export async function createContact(formData: FormData) {
   const whatsapp_number = (formData.get('whatsapp_number') as string | null)?.trim() || undefined
   const instagram_handle = (formData.get('instagram_handle') as string | null)?.trim() || undefined
   const preferred_channel = (formData.get('preferred_channel') as ContactChannel | null) || undefined
-  const type = (formData.get('type') as ContactType | null) || undefined
+  const type = (formData.get('type') as string | null)?.trim() || undefined
   const territory = (formData.get('territory') as string | null)?.trim() || undefined
+  const entity_type = ((formData.get('entity_type') as string | null)?.trim() || 'individual') as EntityType
 
-  // Validações
+  // Validations
   if (!first_name) {
     redirect('/contacts/novo?erro=Nome+é+obrigatório')
   }
@@ -49,18 +34,46 @@ export async function createContact(formData: FormData) {
     redirect('/contacts/novo?erro=Informe+WhatsApp+ou+Instagram+(ao+menos+um+é+obrigatório)')
   }
 
+  // Build details jsonb for company contacts
+  let details: Record<string, unknown> = {}
+  if (entity_type === 'company') {
+    const cnpj = (formData.get('cnpj') as string | null)?.trim() || null
+    const razao_social = (formData.get('razao_social') as string | null)?.trim() || null
+    const responsible_name = (formData.get('responsible_name') as string | null)?.trim() || null
+    const responsible_whatsapp = (formData.get('responsible_whatsapp') as string | null)?.trim() || null
+    const region = (formData.get('region') as string | null)?.trim() || null
+    const payment_terms = (formData.get('payment_terms') as string | null)?.trim() || null
+    const rawCredit = formData.get('credit_limit') as string | null
+    const credit_limit = rawCredit ? Number(rawCredit) : null
+    const rawVolume = formData.get('annual_volume_liters') as string | null
+    const annual_volume_liters = rawVolume ? Number(rawVolume) : null
+
+    details = {
+      cnpj,
+      razao_social,
+      responsible_name,
+      responsible_whatsapp,
+      payment_terms,
+      credit_limit,
+      annual_volume_liters,
+      region,
+    }
+  }
+
   const { error } = await supabase.from('contacts').insert({
     first_name,
-    last_name,
+    last_name: entity_type === 'individual' ? last_name : undefined,
     whatsapp_number,
     instagram_handle,
     preferred_channel,
     type,
     territory,
+    entity_type,
+    details,
     owner_id: user.id,
     created_by: user.id,
     source: 'manual',
-    status: 'lead',
+    status: entity_type === 'company' ? 'cliente' : 'lead',
   })
 
   if (error) {
@@ -79,11 +92,12 @@ export async function updateContact(
     whatsapp_number?: string
     instagram_handle?: string
     preferred_channel?: ContactChannel
-    type?: ContactType
+    type?: string
     territory?: string
     notes?: string
     job_title?: string
     phone?: string
+    details?: Record<string, unknown>
   }
 ) {
   const supabase = await createClient()
