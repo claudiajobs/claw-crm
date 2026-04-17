@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import EnrichButton from '@/components/crm/contacts/EnrichButton'
+import ActivityTimelineSection from '@/components/crm/leads/ActivityTimelineSection'
 
 const STATUS_LABEL: Record<string, string> = {
   lead: 'Lead',
@@ -30,18 +31,6 @@ const CHANNEL_LABEL: Record<string, string> = {
   whatsapp: 'WhatsApp',
   instagram: 'Instagram',
   telefone: 'Telefone',
-}
-
-const ACTIVITY_TYPE_LABEL: Record<string, string> = {
-  nota: 'Nota',
-  ligacao: 'Ligação',
-  reuniao: 'Reunião',
-  tarefa: 'Tarefa',
-  instagram_dm_enviado: 'DM Instagram enviado',
-  instagram_dm_recebido: 'DM Instagram recebido',
-  whatsapp_enviado: 'WhatsApp enviado',
-  whatsapp_recebido: 'WhatsApp recebido',
-  acao_sdr: 'Ação SDR',
 }
 
 const LEAD_STATUS_LABEL: Record<string, string> = {
@@ -130,16 +119,31 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const { data: activitiesRows } = await supabase
     .from('activities')
     .select(
-      'id, type, subject, body, outcome, created_at, performed_by_robot, users(first_name, last_name)'
+      'id, type, subject, body, outcome, created_at, performed_by, performed_by_robot, users(first_name, last_name)'
     )
     .eq('contact_id', id)
     .order('created_at', { ascending: false })
     .limit(30)
 
   const activities = (activitiesRows ?? []).map((a) => ({
-    ...a,
+    id: a.id,
+    type: a.type,
+    subject: a.subject,
+    body: a.body,
+    outcome: a.outcome,
+    created_at: a.created_at,
+    performed_by: a.performed_by,
+    performed_by_robot: a.performed_by_robot,
     users: Array.isArray(a.users) ? a.users[0] ?? null : a.users ?? null,
   }))
+
+  // Fetch current user name for ActivityForm
+  const { data: currentUserRow } = await supabase
+    .from('users')
+    .select('name')
+    .eq('id', user.id)
+    .single()
+  const currentUserName = currentUserRow?.name ?? 'Usuário'
 
   // Fetch creator info
   let creatorLabel: string | null = null
@@ -337,61 +341,13 @@ export default async function ContactPage({ params }: ContactPageProps) {
           )}
         </div>
 
-        {/* Activity timeline */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Atividades</h3>
-          {activities.length === 0 ? (
-            <p className="text-sm text-gray-400">Nenhuma atividade registrada.</p>
-          ) : (
-            <div className="space-y-4">
-              {activities.map((activity) => {
-                const performer = activity.performed_by_robot
-                  ? `Robot ${activity.performed_by_robot.slice(0, 8)}`
-                  : activity.users
-                  ? [activity.users.first_name, activity.users.last_name].filter(Boolean).join(' ')
-                  : 'Sistema'
-
-                return (
-                  <div key={activity.id} className="flex gap-3">
-                    <div className="w-1.5 rounded-full bg-gray-200 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="font-medium text-gray-700">
-                          {ACTIVITY_TYPE_LABEL[activity.type] ?? activity.type}
-                        </span>
-                        <span>&middot;</span>
-                        <span>{performer}</span>
-                        <span>&middot;</span>
-                        <span>
-                          {new Date(activity.created_at).toLocaleDateString('pt-BR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                      {activity.subject && (
-                        <p className="text-sm text-gray-900 mt-0.5">{activity.subject}</p>
-                      )}
-                      {activity.body && (
-                        <p className="text-sm text-gray-600 mt-0.5 line-clamp-3">
-                          {activity.body}
-                        </p>
-                      )}
-                      {activity.outcome && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Resultado: {activity.outcome}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
+        {/* Activity timeline + form */}
+        <ActivityTimelineSection
+          activities={activities}
+          contactId={id}
+          currentUserId={user.id}
+          currentUserName={currentUserName}
+        />
       </div>
     </div>
   )

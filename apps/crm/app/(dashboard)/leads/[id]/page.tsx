@@ -95,7 +95,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
   const { data: activitiesRows } = await supabase
     .from('activities')
     .select(
-      'id, type, subject, body, outcome, created_at, performed_by_robot, users(first_name, last_name)'
+      'id, type, subject, body, outcome, created_at, performed_by, performed_by_robot, users(first_name, last_name)'
     )
     .eq('lead_id', id)
     .order('created_at', { ascending: false })
@@ -107,9 +107,18 @@ export default async function LeadPage({ params }: LeadPageProps) {
     body: a.body,
     outcome: a.outcome,
     created_at: a.created_at,
+    performed_by: a.performed_by,
     performed_by_robot: a.performed_by_robot,
     users: Array.isArray(a.users) ? (a.users[0] ?? null) : (a.users ?? null),
   }))
+
+  // Fetch current user name for ActivityForm
+  const { data: currentUserRow } = await supabase
+    .from('users')
+    .select('name')
+    .eq('id', user.id)
+    .single()
+  const currentUserName = currentUserRow?.name ?? 'Usuário'
 
   const leadForDetail = {
     id: lead.id,
@@ -125,6 +134,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
       : null,
     created_at: lead.created_at,
     created_by_label: creatorLabel,
+    contact_id: lead.contact_id,
     contacts: contactData
       ? {
           first_name: contactData.first_name,
@@ -149,6 +159,8 @@ export default async function LeadPage({ params }: LeadPageProps) {
         activities={activities}
         matchedRules={matchedRules}
         maxScore={MAX_SCORE}
+        currentUserId={user.id}
+        currentUserName={currentUserName}
       />
     </div>
   )

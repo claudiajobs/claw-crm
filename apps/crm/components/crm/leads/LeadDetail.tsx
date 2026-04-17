@@ -1,6 +1,7 @@
 import LeadScoreBadge from './LeadScoreBadge'
-import ActivityTimeline from './ActivityTimeline'
+import ActivityTimelineSection from './ActivityTimelineSection'
 import type { MatchedRule } from '@/lib/scoring/scoring-engine'
+import type { Activity } from './ActivityTimeline'
 
 const STATUS_LABEL: Record<string, string> = {
   novo: 'Novo',
@@ -19,17 +20,6 @@ const TIMELINE_LABEL: Record<string, string> = {
   '6m+': 'Mais de 6 meses',
 }
 
-interface Activity {
-  id: string
-  type: string
-  subject: string | null
-  body: string | null
-  outcome: string | null
-  created_at: string
-  performed_by_robot: string | null
-  users: { first_name: string; last_name: string | null } | null
-}
-
 interface LeadDetailProps {
   lead: {
     id: string
@@ -43,14 +33,17 @@ interface LeadDetailProps {
     estimated_volume_liters: number | null
     created_at: string
     created_by_label: string | null
+    contact_id: string
     contacts: { first_name: string; last_name: string | null; preferred_channel: string | null } | null
   }
   activities: Activity[]
   matchedRules: MatchedRule[]
   maxScore: number
+  currentUserId: string
+  currentUserName: string
 }
 
-export default function LeadDetail({ lead, activities, matchedRules, maxScore }: LeadDetailProps) {
+export default function LeadDetail({ lead, activities, matchedRules, maxScore, currentUserId, currentUserName }: LeadDetailProps) {
   const contactName = lead.contacts
     ? [lead.contacts.first_name, lead.contacts.last_name].filter(Boolean).join(' ')
     : '—'
@@ -153,11 +146,14 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore }:
         )}
       </div>
 
-      {/* Timeline de atividades */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Atividades</h3>
-        <ActivityTimeline activities={activities} />
-      </div>
+      {/* Timeline de atividades + Formulário */}
+      <ActivityTimelineSection
+        activities={activities}
+        contactId={lead.contact_id}
+        leadId={lead.id}
+        currentUserId={currentUserId}
+        currentUserName={currentUserName}
+      />
     </div>
   )
 }
