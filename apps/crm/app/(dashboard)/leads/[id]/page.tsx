@@ -35,14 +35,13 @@ export default async function LeadPage({ params }: LeadPageProps) {
   if (contactData?.account_id) {
     const { data } = await supabase
       .from('contacts')
-      .select('classification, details')
+      .select('entity_type, details')
       .eq('id', contactData.account_id)
-      .eq('entity_type', 'company')
       .single()
     if (data) {
       const details = (data.details ?? {}) as Record<string, unknown>
       accountData = {
-        type: data.classification,
+        type: data.entity_type === 'company' ? 'distribuidor' : null,
         payment_terms: (details.payment_terms as string) ?? null,
       }
     }
