@@ -1,5 +1,7 @@
 import LeadScoreBadge from './LeadScoreBadge'
 import ActivityTimelineSection from './ActivityTimelineSection'
+import TaskSection from '@/components/crm/tasks/TaskSection'
+import type { TaskItem } from '@/components/crm/tasks/TaskSection'
 import type { MatchedRule } from '@/lib/scoring/scoring-engine'
 import type { Activity } from './ActivityTimeline'
 
@@ -41,9 +43,10 @@ interface LeadDetailProps {
   maxScore: number
   currentUserId: string
   currentUserName: string
+  tasks: TaskItem[]
 }
 
-export default function LeadDetail({ lead, activities, matchedRules, maxScore, currentUserId, currentUserName }: LeadDetailProps) {
+export default function LeadDetail({ lead, activities, matchedRules, maxScore, currentUserId, currentUserName, tasks }: LeadDetailProps) {
   const contactName = lead.contacts
     ? [lead.contacts.first_name, lead.contacts.last_name].filter(Boolean).join(' ')
     : '—'
@@ -145,6 +148,14 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore, c
           </ul>
         )}
       </div>
+
+      {/* Tarefas */}
+      <TaskSection
+        tasks={tasks}
+        entityType="lead"
+        entityId={lead.id}
+        revalidatePath={`/leads/${lead.id}`}
+      />
 
       {/* Timeline de atividades + Formulário */}
       <ActivityTimelineSection

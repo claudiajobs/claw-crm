@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import EnrichButton from '@/components/crm/contacts/EnrichButton'
 import ActivityTimelineSection from '@/components/crm/leads/ActivityTimelineSection'
+import TaskSection from '@/components/crm/tasks/TaskSection'
 
 const STATUS_LABEL: Record<string, string> = {
   lead: 'Lead',
@@ -135,6 +136,23 @@ export default async function ContactPage({ params }: ContactPageProps) {
     performed_by: a.performed_by,
     performed_by_robot: a.performed_by_robot,
     users: Array.isArray(a.users) ? a.users[0] ?? null : a.users ?? null,
+  }))
+
+  // Fetch pending tasks for this contact
+  const { data: taskRows } = await supabase
+    .from('tasks')
+    .select('id, title, due_at, priority, status')
+    .eq('contact_id', id)
+    .eq('assigned_to', user.id)
+    .in('status', ['pendente'])
+    .order('due_at', { ascending: true, nullsFirst: false })
+
+  const tasks = (taskRows ?? []).map((t) => ({
+    id: t.id,
+    title: t.title,
+    due_at: t.due_at,
+    priority: t.priority,
+    status: t.status,
   }))
 
   // Fetch current user name for ActivityForm
@@ -340,6 +358,14 @@ export default async function ContactPage({ params }: ContactPageProps) {
             </div>
           )}
         </div>
+
+        {/* Tarefas */}
+        <TaskSection
+          tasks={tasks}
+          entityType="contact"
+          entityId={id}
+          revalidatePath={`/contacts/${id}`}
+        />
 
         {/* Activity timeline + form */}
         <ActivityTimelineSection
