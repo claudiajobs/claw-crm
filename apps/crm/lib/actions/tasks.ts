@@ -43,7 +43,42 @@ export async function createTask(formData: FormData) {
   redirect('/tasks')
 }
 
-export async function completeTask(taskId: string) {
+export async function createQuickTask(formData: FormData): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado' }
+
+  const title = (formData.get('title') as string | null)?.trim() ?? ''
+  const description = (formData.get('description') as string | null)?.trim() || null
+  const due_at = (formData.get('due_at') as string | null) || null
+  const priority = (formData.get('priority') as TaskPriority | null) ?? 'medio'
+  const contact_id = (formData.get('contact_id') as string | null) || null
+  const lead_id = (formData.get('lead_id') as string | null) || null
+  const revalidate = (formData.get('_revalidate') as string | null) || '/tasks'
+
+  if (!title) return { error: 'Título é obrigatório' }
+
+  const { error } = await supabase.from('tasks').insert({
+    title,
+    description,
+    due_at,
+    priority,
+    contact_id,
+    lead_id,
+    assigned_to: user.id,
+    created_by: user.id,
+  })
+
+  if (error) return { error: 'Erro ao criar tarefa: ' + error.message }
+
+  revalidatePath(revalidate)
+  revalidatePath('/tasks')
+  return {}
+}
+
+export async function completeTask(taskId: string, revalidate?: string) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -59,6 +94,7 @@ export async function completeTask(taskId: string) {
   if (error) return
 
   revalidatePath('/tasks')
+  if (revalidate) revalidatePath(revalidate)
 }
 
 export async function deleteTask(taskId: string) {
@@ -70,7 +106,7 @@ export async function deleteTask(taskId: string) {
 
   await supabase
     .from('tasks')
-    .delete()
+    .update({ status: 'cancelada' })
     .eq('id', taskId)
     .eq('assigned_to', user.id)
 

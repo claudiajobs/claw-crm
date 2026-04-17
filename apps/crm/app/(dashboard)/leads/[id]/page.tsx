@@ -91,6 +91,23 @@ export default async function LeadPage({ params }: LeadPageProps) {
     }
   }
 
+  // Fetch pending tasks for this lead
+  const { data: taskRows } = await supabase
+    .from('tasks')
+    .select('id, title, due_at, priority, status')
+    .eq('lead_id', id)
+    .eq('assigned_to', user.id)
+    .in('status', ['pendente'])
+    .order('due_at', { ascending: true, nullsFirst: false })
+
+  const tasks = (taskRows ?? []).map((t) => ({
+    id: t.id,
+    title: t.title,
+    due_at: t.due_at,
+    priority: t.priority,
+    status: t.status,
+  }))
+
   // Fetch activities timeline
   const { data: activitiesRows } = await supabase
     .from('activities')
@@ -161,6 +178,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
         maxScore={MAX_SCORE}
         currentUserId={user.id}
         currentUserName={currentUserName}
+        tasks={tasks}
       />
     </div>
   )

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { completeTask } from '@/lib/actions/tasks'
+import TaskCreateToggle from '@/components/crm/tasks/TaskCreateToggle'
 
 const PRIORITY_ORDER: Record<string, number> = { alto: 0, medio: 1, baixo: 2 }
 const PRIORITY_LABEL: Record<string, string> = {
@@ -41,19 +42,38 @@ export default async function TasksPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: rows } = await supabase
-    .from('tasks')
-    .select(
-      'id, title, description, due_at, priority, status, completed_at, contact_id, lead_id, contacts(first_name, last_name), leads(title)'
-    )
-    .eq('assigned_to', user.id)
-    .in('status', ['pendente'])
-    .order('due_at', { ascending: true, nullsFirst: false })
+  const [{ data: rows }, { data: leadsRows }, { data: contactsRows }] = await Promise.all([
+    supabase
+      .from('tasks')
+      .select(
+        'id, title, description, due_at, priority, status, completed_at, contact_id, lead_id, contacts(first_name, last_name), leads(title)'
+      )
+      .eq('assigned_to', user.id)
+      .in('status', ['pendente'])
+      .order('due_at', { ascending: true, nullsFirst: false }),
+    supabase
+      .from('leads')
+      .select('id, title')
+      .eq('owner_id', user.id)
+      .in('status', ['novo', 'contatado', 'qualificado', 'proposta', 'negociacao'])
+      .order('title'),
+    supabase
+      .from('contacts')
+      .select('id, first_name, last_name')
+      .eq('created_by', user.id)
+      .order('first_name'),
+  ])
 
   const tasks: Task[] = (rows ?? []).map((t) => ({
     ...t,
     contacts: Array.isArray(t.contacts) ? t.contacts[0] ?? null : t.contacts ?? null,
     leads: Array.isArray(t.leads) ? t.leads[0] ?? null : t.leads ?? null,
+  }))
+
+  const leadOptions = (leadsRows ?? []).map((l) => ({ id: l.id, label: l.title }))
+  const contactOptions = (contactsRows ?? []).map((c) => ({
+    id: c.id,
+    label: [c.first_name, c.last_name].filter(Boolean).join(' '),
   }))
 
   const grouped = Object.entries(
@@ -67,9 +87,7 @@ export default async function TasksPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Tarefas</h1>
-      </div>
+      <TaskCreateToggle leads={leadOptions} contacts={contactOptions} />
 
       {tasks.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
