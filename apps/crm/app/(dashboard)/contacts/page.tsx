@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ContactSearch from '@/components/crm/contacts/ContactSearch'
+import { IconPlus } from '@tabler/icons-react'
 
 const STATUS_LABEL: Record<string, string> = {
   lead: 'Lead',
@@ -9,11 +10,11 @@ const STATUS_LABEL: Record<string, string> = {
   inativo: 'Inativo',
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  lead: 'bg-blue-100 text-blue-700',
-  prospecto: 'bg-yellow-100 text-yellow-700',
-  cliente: 'bg-green-100 text-green-700',
-  inativo: 'bg-gray-100 text-gray-500',
+const STATUS_BADGE: Record<string, string> = {
+  lead:      'badge badge-sq badge-blue',
+  prospecto: 'badge badge-sq badge-amber',
+  cliente:   'badge badge-sq badge-teal',
+  inativo:   'badge badge-sq badge-gray',
 }
 
 const TYPE_LABEL: Record<string, string> = {
@@ -24,11 +25,6 @@ const TYPE_LABEL: Record<string, string> = {
   distribuidor: 'Distribuidor',
   construtora: 'Construtora',
   loja_materiais: 'Loja de Materiais',
-}
-
-const ENTITY_LABEL: Record<string, string> = {
-  individual: 'Pessoa',
-  company: 'Empresa',
 }
 
 const PAGE_SIZE = 25
@@ -63,7 +59,6 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
     .order('id', { ascending: false })
     .limit(PAGE_SIZE + 1)
 
-  // Full-text search or ilike fallback
   if (searchQuery) {
     query = query.or(
       `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%`
@@ -99,67 +94,54 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Contatos</h1>
-        <Link
-          href="/contacts/novo"
-          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm
-                     font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          + Novo contato
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <h1 className="topbar-title">Contatos</h1>
+        <Link href="/contacts/novo" className="btn btn-primary">
+          <IconPlus size={14} stroke={1.5} aria-hidden />
+          Novo contato
         </Link>
       </div>
 
       {/* Search */}
-      <div className="mb-4">
+      <div style={{ marginBottom: 16 }}>
         <ContactSearch defaultValue={searchQuery} />
       </div>
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 mb-4">
-          <p className="text-sm text-red-700">Erro ao carregar contatos: {error.message}</p>
+        <div className="card" style={{ borderLeft: '3px solid var(--color-danger)', marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: '#C44040' }}>Erro ao carregar contatos: {error.message}</p>
         </div>
       )}
 
       {/* Table */}
       {page.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
-          <p className="text-gray-400 text-sm">
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>
             {searchQuery ? 'Nenhum contato encontrado para a busca.' : 'Nenhum contato encontrado.'}
           </p>
           {!searchQuery && (
             <Link
               href="/contacts/novo"
-              className="mt-4 inline-block text-sm text-red-600 hover:underline"
+              style={{ marginTop: 16, display: 'inline-block', fontSize: 13, color: 'var(--color-primary)' }}
             >
               Criar primeiro contato
             </Link>
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Canal
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Território
-                </th>
+              <tr>
+                <th>Nome</th>
+                <th>Canal</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Território</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody>
               {page.map((contact) => {
                 const fullName = [contact.first_name, contact.last_name]
                   .filter(Boolean)
@@ -172,33 +154,30 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
                   : '\u2014'
 
                 return (
-                  <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">
+                  <tr key={contact.id}>
+                    <td style={{ fontWeight: 600 }}>
                       <Link
                         href={`/contacts/${contact.id}`}
-                        className="hover:text-red-600 transition-colors"
+                        style={{ color: 'var(--color-gray-800)', textDecoration: 'none' }}
                       >
                         {fullName}
                       </Link>
                       {contact.entity_type === 'company' && (
-                        <span className="ml-2 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium bg-purple-100 text-purple-700">
+                        <span className="badge badge-sq badge-purple" style={{ marginLeft: 8, fontSize: 9 }}>
                           Empresa
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{channelDisplay}</td>
-                    <td className="px-6 py-4 text-gray-600">
+                    <td style={{ color: 'var(--color-gray-600)' }}>{channelDisplay}</td>
+                    <td style={{ color: 'var(--color-gray-600)' }}>
                       {contact.classification ? TYPE_LABEL[contact.classification] ?? contact.classification : '\u2014'}
                     </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                          ${STATUS_COLOR[contact.status] ?? 'bg-gray-100 text-gray-500'}`}
-                      >
+                    <td>
+                      <span className={STATUS_BADGE[contact.status] ?? 'badge badge-sq badge-gray'}>
                         {STATUS_LABEL[contact.status] ?? contact.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">
+                    <td style={{ color: 'var(--color-gray-400)' }}>
                       {contact.territory ?? '\u2014'}
                     </td>
                   </tr>
@@ -209,11 +188,11 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
 
           {/* Pagination */}
           {(cursor || hasMore) && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderTop: '0.5px solid var(--color-gray-100)' }}>
               {cursor ? (
                 <Link
                   href={buildHref({ cursor: null })}
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  style={{ fontSize: 12, color: 'var(--color-gray-600)', textDecoration: 'none' }}
                 >
                   &larr; Primeira página
                 </Link>
@@ -224,7 +203,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
               {nextCursor && (
                 <Link
                   href={buildHref({ cursor: encodeURIComponent(nextCursor) })}
-                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
                 >
                   Próxima página &rarr;
                 </Link>

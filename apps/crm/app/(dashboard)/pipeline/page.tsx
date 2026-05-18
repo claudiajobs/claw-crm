@@ -34,9 +34,9 @@ export default async function PipelinePage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Pipeline</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+      <div style={{ marginBottom: 24 }}>
+        <h1 className="topbar-title">Pipeline</h1>
+        <p className="topbar-sub">
           Arraste os cards entre colunas para atualizar o status do lead.
         </p>
       </div>

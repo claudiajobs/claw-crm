@@ -2,16 +2,17 @@
 
 import { useOptimistic, useRef, useState, useTransition } from 'react'
 import { completeTask, createQuickTask } from '@/lib/actions/tasks'
+import { IconCircleCheck, IconPlus } from '@tabler/icons-react'
 
 const PRIORITY_LABEL: Record<string, string> = {
   alto: 'Alta',
   medio: 'Média',
   baixo: 'Baixa',
 }
-const PRIORITY_COLOR: Record<string, string> = {
-  alto: 'bg-red-100 text-red-700 border-red-200',
-  medio: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  baixo: 'bg-blue-100 text-blue-700 border-blue-200',
+const PRIORITY_BADGE: Record<string, string> = {
+  alto:  'badge badge-coral',
+  medio: 'badge badge-amber',
+  baixo: 'badge badge-blue',
 }
 
 export interface TaskItem {
@@ -77,64 +78,43 @@ export default function TaskSection({ tasks, entityType, entityId, revalidatePat
     })
   }
 
-  const inputClass =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
-
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">
+    <div className="card">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-gray-800)' }}>
           Tarefas ({optimisticTasks.length})
         </h3>
         {!showForm && (
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="text-xs font-semibold text-red-600 hover:text-red-700 transition-colors"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            + Tarefa
+            <IconPlus size={14} stroke={1.5} aria-hidden />
+            Tarefa
           </button>
         )}
       </div>
 
       {showForm && (
-        <form ref={formRef} action={handleCreate} className="mb-4 space-y-3 border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <form ref={formRef} action={handleCreate} style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 12, border: '0.5px solid var(--color-gray-200)', borderRadius: 'var(--radius-sm)', padding: 16, background: 'var(--color-gray-50)' }}>
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+            <p className="field-error" style={{ background: 'var(--color-danger-light)', padding: '6px 12px', borderRadius: 'var(--radius-xs)' }}>{error}</p>
           )}
 
-          <div>
-            <label htmlFor={`qt-title-${entityId}`} className="block text-xs font-medium text-gray-700 mb-1">
-              Título *
-            </label>
-            <input
-              id={`qt-title-${entityId}`}
-              name="title"
-              type="text"
-              required
-              placeholder="Ex: Follow-up com cliente"
-              className={inputClass}
-            />
+          <div className="field">
+            <label htmlFor={`qt-title-${entityId}`} className="field-label">Título <span className="req">*</span></label>
+            <input id={`qt-title-${entityId}`} name="title" type="text" required placeholder="Ex: Follow-up com cliente" className="input" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label htmlFor={`qt-due-${entityId}`} className="block text-xs font-medium text-gray-700 mb-1">
-                Prazo *
-              </label>
-              <input
-                id={`qt-due-${entityId}`}
-                name="due_at"
-                type="datetime-local"
-                required
-                className={inputClass}
-              />
+          <div className="form-grid-2">
+            <div className="field">
+              <label htmlFor={`qt-due-${entityId}`} className="field-label">Prazo <span className="req">*</span></label>
+              <input id={`qt-due-${entityId}`} name="due_at" type="datetime-local" required className="input" />
             </div>
-            <div>
-              <label htmlFor={`qt-priority-${entityId}`} className="block text-xs font-medium text-gray-700 mb-1">
-                Prioridade
-              </label>
-              <select id={`qt-priority-${entityId}`} name="priority" defaultValue="medio" className={inputClass}>
+            <div className="field">
+              <label htmlFor={`qt-priority-${entityId}`} className="field-label">Prioridade</label>
+              <select id={`qt-priority-${entityId}`} name="priority" defaultValue="medio" className="input">
                 <option value="baixo">Baixa</option>
                 <option value="medio">Média</option>
                 <option value="alto">Alta</option>
@@ -146,19 +126,11 @@ export default function TaskSection({ tasks, entityType, entityId, revalidatePat
           {entityType === 'contact' && <input type="hidden" name="contact_id" value={entityId} />}
           <input type="hidden" name="_revalidate" value={revalidate} />
 
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={isPending}
-              className="inline-flex items-center rounded-lg bg-red-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-red-700 active:bg-red-800 disabled:opacity-50 transition-colors"
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button type="submit" disabled={isPending} className="btn btn-sm btn-primary" style={{ opacity: isPending ? 0.5 : 1 }}>
               {isPending ? 'Salvando...' : 'Salvar'}
             </button>
-            <button
-              type="button"
-              onClick={() => { setShowForm(false); setError(null) }}
-              className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
+            <button type="button" onClick={() => { setShowForm(false); setError(null) }} className="btn btn-sm btn-ghost">
               Cancelar
             </button>
           </div>
@@ -166,23 +138,21 @@ export default function TaskSection({ tasks, entityType, entityId, revalidatePat
       )}
 
       {optimisticTasks.length === 0 ? (
-        <p className="text-sm text-gray-400">Nenhuma tarefa pendente.</p>
+        <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Nenhuma tarefa pendente.</p>
       ) : (
-        <div className="divide-y divide-gray-100">
-          {optimisticTasks.map((task) => {
+        <div>
+          {optimisticTasks.map((task, idx) => {
             const isOverdue = task.due_at && new Date(task.due_at) < new Date()
             return (
-              <div key={task.id} className="flex items-center justify-between py-3 gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border ${PRIORITY_COLOR[task.priority] ?? 'bg-gray-100 text-gray-500 border-gray-200'}`}
-                    >
+              <div key={task.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', gap: 12, borderBottom: idx < optimisticTasks.length - 1 ? '0.5px solid var(--color-gray-100)' : 'none' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-gray-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                    <span className={PRIORITY_BADGE[task.priority] ?? 'badge badge-gray'}>
                       {PRIORITY_LABEL[task.priority] ?? task.priority}
                     </span>
                     {task.due_at && (
-                      <span className={`text-xs ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+                      <span style={{ fontSize: 11, color: isOverdue ? '#C44040' : 'var(--color-gray-400)', fontWeight: isOverdue ? 600 : 400 }}>
                         {new Date(task.due_at).toLocaleDateString('pt-BR')}
                       </span>
                     )}
@@ -192,10 +162,10 @@ export default function TaskSection({ tasks, entityType, entityId, revalidatePat
                   type="button"
                   onClick={() => handleComplete(task.id)}
                   disabled={isPending || task.id.startsWith('optimistic-')}
-                  className="inline-flex items-center rounded-lg border border-green-200 bg-green-50
-                             px-3 py-1.5 text-xs font-semibold text-green-700
-                             hover:bg-green-100 disabled:opacity-50 transition-colors"
+                  className="btn btn-sm btn-success"
+                  style={{ opacity: isPending || task.id.startsWith('optimistic-') ? 0.5 : 1 }}
                 >
+                  <IconCircleCheck size={14} stroke={1.5} aria-hidden />
                   Concluir
                 </button>
               </div>

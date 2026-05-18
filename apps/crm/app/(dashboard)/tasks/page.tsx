@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { completeTask } from '@/lib/actions/tasks'
 import TaskCreateToggle from '@/components/crm/tasks/TaskCreateToggle'
+import { IconCircleCheck } from '@tabler/icons-react'
 
 const PRIORITY_ORDER: Record<string, number> = { alto: 0, medio: 1, baixo: 2 }
 const PRIORITY_LABEL: Record<string, string> = {
@@ -9,10 +10,10 @@ const PRIORITY_LABEL: Record<string, string> = {
   medio: 'Média',
   baixo: 'Baixa',
 }
-const PRIORITY_COLOR: Record<string, string> = {
-  alto: 'bg-red-100 text-red-700 border-red-200',
-  medio: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  baixo: 'bg-blue-100 text-blue-700 border-blue-200',
+const PRIORITY_BADGE: Record<string, string> = {
+  alto:  'badge badge-coral',
+  medio: 'badge badge-amber',
+  baixo: 'badge badge-blue',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -90,24 +91,22 @@ export default async function TasksPage() {
       <TaskCreateToggle leads={leadOptions} contacts={contactOptions} />
 
       {tasks.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
-          <p className="text-gray-400 text-sm">Nenhuma tarefa pendente.</p>
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Nenhuma tarefa pendente.</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {grouped.map(([priority, items]) => (
             <div key={priority}>
-              <h2 className="flex items-center gap-2 mb-3">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${PRIORITY_COLOR[priority] ?? 'bg-gray-100 text-gray-500 border-gray-200'}`}
-                >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span className={PRIORITY_BADGE[priority] ?? 'badge badge-gray'}>
                   {PRIORITY_LABEL[priority] ?? priority}
                 </span>
-                <span className="text-xs text-gray-400">{items.length}</span>
-              </h2>
+                <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>{items.length}</span>
+              </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-                {items.map((task) => {
+              <div className="card" style={{ padding: 0 }}>
+                {items.map((task, idx) => {
                   const contactName = task.contacts
                     ? [task.contacts.first_name, task.contacts.last_name]
                         .filter(Boolean)
@@ -120,17 +119,24 @@ export default async function TasksPage() {
                   return (
                     <div
                       key={task.id}
-                      className="flex items-center justify-between px-5 py-4 gap-4"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 16px',
+                        gap: 16,
+                        borderBottom: idx < items.length - 1 ? '0.5px solid var(--color-gray-100)' : 'none',
+                      }}
                     >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-gray-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {task.title}
                         </p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4, fontSize: 11, color: 'var(--color-gray-400)' }}>
                           {leadTitle && <span>Lead: {leadTitle}</span>}
                           {contactName && <span>Contato: {contactName}</span>}
                           {task.due_at && (
-                            <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
+                            <span style={isOverdue ? { color: '#C44040', fontWeight: 600 } : undefined}>
                               Vence: {new Date(task.due_at).toLocaleDateString('pt-BR')}
                             </span>
                           )}
@@ -144,12 +150,8 @@ export default async function TasksPage() {
                           await completeTask(task.id)
                         }}
                       >
-                        <button
-                          type="submit"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50
-                                     px-3 py-1.5 text-xs font-semibold text-green-700
-                                     hover:bg-green-100 transition-colors"
-                        >
+                        <button type="submit" className="btn btn-sm btn-success">
+                          <IconCircleCheck size={14} stroke={1.5} aria-hidden />
                           Concluir
                         </button>
                       </form>

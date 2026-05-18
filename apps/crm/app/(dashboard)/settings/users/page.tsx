@@ -10,7 +10,6 @@ export default async function UsersPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Check admin
   const { data: profile } = await supabase
     .from('users')
     .select('role')
@@ -37,9 +36,9 @@ export default async function UsersPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Gestao de Usuarios</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+      <div style={{ marginBottom: 24 }}>
+        <h1 className="topbar-title">Gestao de Usuarios</h1>
+        <p className="topbar-sub">
           Aprove, suspenda ou reative usuarios do sistema.
         </p>
       </div>

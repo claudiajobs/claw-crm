@@ -51,105 +51,93 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore, c
     ? [lead.contacts.first_name, lead.contacts.last_name].filter(Boolean).join(' ')
     : '—'
 
+  const dtStyle = { fontSize: 10, fontWeight: 700 as const, color: 'var(--color-gray-400)', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }
+  const ddStyle = { marginTop: 2, fontSize: 13, fontWeight: 600 as const, color: 'var(--color-gray-800)' }
+
   return (
-    <div className="space-y-6">
-      {/* Cabeçalho */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Header */}
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">{lead.title}</h2>
-            <p className="text-sm text-gray-500 mt-0.5">Contato: {contactName}</p>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-gray-800)' }}>{lead.title}</h2>
+            <p style={{ fontSize: 12, color: 'var(--color-gray-400)', marginTop: 2 }}>Contato: {contactName}</p>
           </div>
           <LeadScoreBadge score={lead.score ?? 0} />
         </div>
 
-        <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+        <dl style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px 24px' }}>
           <div>
-            <dt className="text-xs text-gray-500">Status</dt>
-            <dd className="mt-0.5 text-sm font-medium text-gray-900">
-              {STATUS_LABEL[lead.status] ?? lead.status}
-            </dd>
+            <dt style={dtStyle}>Status</dt>
+            <dd style={ddStyle}>{STATUS_LABEL[lead.status] ?? lead.status}</dd>
           </div>
           {lead.value != null && (
             <div>
-              <dt className="text-xs text-gray-500">Valor</dt>
-              <dd className="mt-0.5 text-sm font-medium text-gray-900">
-                {Number(lead.value).toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL',
-                })}
+              <dt style={dtStyle}>Valor</dt>
+              <dd style={ddStyle}>
+                {Number(lead.value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </dd>
             </div>
           )}
           {lead.decision_timeline && (
             <div>
-              <dt className="text-xs text-gray-500">Prazo de decisão</dt>
-              <dd className="mt-0.5 text-sm font-medium text-gray-900">
-                {TIMELINE_LABEL[lead.decision_timeline] ?? lead.decision_timeline}
-              </dd>
+              <dt style={dtStyle}>Prazo de decisão</dt>
+              <dd style={ddStyle}>{TIMELINE_LABEL[lead.decision_timeline] ?? lead.decision_timeline}</dd>
             </div>
           )}
           {lead.estimated_volume_liters != null && (
             <div>
-              <dt className="text-xs text-gray-500">Volume estimado</dt>
-              <dd className="mt-0.5 text-sm font-medium text-gray-900">
-                {Number(lead.estimated_volume_liters).toLocaleString('pt-BR')} L
-              </dd>
+              <dt style={dtStyle}>Volume estimado</dt>
+              <dd style={ddStyle}>{Number(lead.estimated_volume_liters).toLocaleString('pt-BR')} L</dd>
             </div>
           )}
           {lead.project_type && (
             <div>
-              <dt className="text-xs text-gray-500">Tipo de projeto</dt>
-              <dd className="mt-0.5 text-sm font-medium text-gray-900 capitalize">
-                {lead.project_type}
-              </dd>
+              <dt style={dtStyle}>Tipo de projeto</dt>
+              <dd style={{ ...ddStyle, textTransform: 'capitalize' }}>{lead.project_type}</dd>
             </div>
           )}
           {lead.product_interest?.length > 0 && (
             <div>
-              <dt className="text-xs text-gray-500">Interesse em produto</dt>
-              <dd className="mt-0.5 text-sm font-medium text-gray-900">
-                {lead.product_interest.join(', ')}
-              </dd>
+              <dt style={dtStyle}>Interesse em produto</dt>
+              <dd style={ddStyle}>{lead.product_interest.join(', ')}</dd>
             </div>
           )}
           <div>
-            <dt className="text-xs text-gray-500">Criado em</dt>
-            <dd className="mt-0.5 text-sm text-gray-700">
+            <dt style={dtStyle}>Criado em</dt>
+            <dd style={{ marginTop: 2, fontSize: 13, color: 'var(--color-gray-600)' }}>
               {new Date(lead.created_at).toLocaleDateString('pt-BR')}
             </dd>
           </div>
           {lead.created_by_label && (
             <div>
-              <dt className="text-xs text-gray-500">Criado por</dt>
-              <dd className="mt-0.5 text-sm text-gray-700">{lead.created_by_label}</dd>
+              <dt style={dtStyle}>Criado por</dt>
+              <dd style={{ marginTop: 2, fontSize: 13, color: 'var(--color-gray-600)' }}>{lead.created_by_label}</dd>
             </div>
           )}
         </dl>
       </div>
 
       {/* Score breakdown */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      <div className="card">
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 12 }}>
           Score breakdown — {lead.score ?? 0}/{maxScore} pts
         </h3>
         {matchedRules.length === 0 ? (
-          <p className="text-sm text-gray-400">Nenhuma regra ativa para este lead.</p>
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Nenhuma regra ativa para este lead.</p>
         ) : (
-          <ul className="space-y-2">
+          <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, listStyle: 'none' }}>
             {matchedRules.map((rule) => (
-              <li key={rule.id} className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">{rule.description}</span>
-                <span className="text-xs font-semibold text-green-700 bg-green-50 rounded-full px-2 py-0.5">
-                  +{rule.points}
-                </span>
+              <li key={rule.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 13, color: 'var(--color-gray-600)' }}>{rule.description}</span>
+                <span className="badge badge-teal">+{rule.points}</span>
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {/* Tarefas */}
+      {/* Tasks */}
       <TaskSection
         tasks={tasks}
         entityType="lead"
@@ -157,7 +145,7 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore, c
         revalidatePath={`/leads/${lead.id}`}
       />
 
-      {/* Timeline de atividades + Formulário */}
+      {/* Timeline + Form */}
       <ActivityTimelineSection
         activities={activities}
         contactId={lead.contact_id}

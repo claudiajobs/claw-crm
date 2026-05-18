@@ -22,10 +22,10 @@ const STATUS_LABEL: Record<string, string> = {
   suspended: 'Suspenso',
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700',
-  active: 'bg-green-100 text-green-700',
-  suspended: 'bg-red-100 text-red-700',
+const STATUS_BADGE: Record<string, string> = {
+  pending:   'badge badge-sq badge-amber',
+  active:    'badge badge-sq badge-teal',
+  suspended: 'badge badge-sq badge-coral',
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -68,7 +68,7 @@ export default function UserList({ users }: UserListProps) {
   return (
     <div>
       {/* Filters */}
-      <div className="flex gap-2 mb-4">
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {[
           { key: 'all', label: 'Todos' },
           { key: 'pending', label: 'Pendentes' },
@@ -79,11 +79,7 @@ export default function UserList({ users }: UserListProps) {
             key={f.key}
             type="button"
             onClick={() => setFilter(f.key)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-              filter === f.key
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            className={filter === f.key ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost'}
           >
             {f.label}
           </button>
@@ -92,58 +88,40 @@ export default function UserList({ users }: UserListProps) {
 
       {/* Table */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 px-6 py-12 text-center">
-          <p className="text-sm text-gray-400">Nenhum usuario encontrado.</p>
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Nenhum usuario encontrado.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  E-mail
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Criado em
-                </th>
-                <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Acoes
-                </th>
+              <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Criado em</th>
+                <th style={{ textAlign: 'right' }}>Acoes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody>
               {filtered.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {u.name ?? '—'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{u.email}</td>
-                  <td className="px-6 py-4 text-gray-600">
+                <tr key={u.id}>
+                  <td style={{ fontWeight: 600 }}>{u.name ?? '—'}</td>
+                  <td style={{ color: 'var(--color-gray-600)' }}>{u.email}</td>
+                  <td style={{ color: 'var(--color-gray-600)' }}>
                     {u.role ? (ROLE_LABEL[u.role] ?? u.role) : '—'}
                   </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        STATUS_COLOR[u.status] ?? 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
+                  <td>
+                    <span className={STATUS_BADGE[u.status] ?? 'badge badge-sq badge-gray'}>
                       {STATUS_LABEL[u.status] ?? u.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">
+                  <td style={{ color: 'var(--color-gray-400)' }}>
                     {new Date(u.created_at).toLocaleDateString('pt-BR')}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
                       {u.status === 'pending' && (
                         <button
                           type="button"
@@ -152,7 +130,8 @@ export default function UserList({ users }: UserListProps) {
                             setSelectedRole('vendedor')
                             setApproveModal(u.id)
                           }}
-                          className="text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                          className="btn btn-sm btn-success"
+                          style={{ opacity: loading ? 0.5 : 1 }}
                         >
                           Aprovar
                         </button>
@@ -162,7 +141,8 @@ export default function UserList({ users }: UserListProps) {
                           type="button"
                           disabled={loading}
                           onClick={() => handleSuspend(u.id)}
-                          className="text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                          className="btn btn-sm btn-danger"
+                          style={{ opacity: loading ? 0.5 : 1 }}
                         >
                           Suspender
                         </button>
@@ -172,7 +152,8 @@ export default function UserList({ users }: UserListProps) {
                           type="button"
                           disabled={loading}
                           onClick={() => handleReactivate(u.id)}
-                          className="text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg px-3 py-1.5 transition-colors disabled:opacity-50"
+                          className="btn btn-sm btn-secondary"
+                          style={{ opacity: loading ? 0.5 : 1 }}
                         >
                           Reativar
                         </button>
@@ -188,36 +169,33 @@ export default function UserList({ users }: UserListProps) {
 
       {/* Approve modal */}
       {approveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Aprovar usuario</h3>
-            <p className="text-sm text-gray-500 mb-4">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: 380, margin: 16, borderRadius: 'var(--radius-xl)' }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 16 }}>Aprovar usuario</h3>
+            <p style={{ fontSize: 13, color: 'var(--color-gray-400)', marginBottom: 16 }}>
               Selecione a role para o usuario:
             </p>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value as UserRole)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 bg-white
-                         focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent mb-4"
+              className="input"
+              style={{ marginBottom: 16 }}
             >
               <option value="admin">Admin</option>
               <option value="editor">Editor</option>
               <option value="vendedor">Vendedor</option>
               <option value="sdr">SDR</option>
             </select>
-            <div className="flex gap-3 justify-end">
-              <button
-                type="button"
-                onClick={() => setApproveModal(null)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setApproveModal(null)} className="btn btn-ghost">
                 Cancelar
               </button>
               <button
                 type="button"
                 disabled={loading}
                 onClick={handleApprove}
-                className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors disabled:opacity-50"
+                className="btn btn-success"
+                style={{ opacity: loading ? 0.5 : 1 }}
               >
                 Confirmar
               </button>

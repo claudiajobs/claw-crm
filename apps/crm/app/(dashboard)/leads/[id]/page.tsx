@@ -5,6 +5,7 @@ import LeadDetail from '@/components/crm/leads/LeadDetail'
 import { computeLeadScore } from '@/lib/scoring/scoring-engine'
 import type { LeadScoringInput } from '@/lib/scoring/scoring-rules.config'
 import { MAX_SCORE } from '@/lib/scoring/scoring-rules.config'
+import { IconArrowLeft } from '@tabler/icons-react'
 
 interface LeadPageProps {
   params: Promise<{ id: string }>
@@ -29,7 +30,6 @@ export default async function LeadPage({ params }: LeadPageProps) {
 
   if (!lead) notFound()
 
-  // Fetch account (company contact) for scoring
   const contactData = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts
   let accountData: { type: string | null; payment_terms: string | null } | null = null
   if (contactData?.account_id) {
@@ -47,7 +47,6 @@ export default async function LeadPage({ params }: LeadPageProps) {
     }
   }
 
-  // Fetch latest activity for scoring
   const { data: lastActivity } = await supabase
     .from('activities')
     .select('created_at')
@@ -76,7 +75,6 @@ export default async function LeadPage({ params }: LeadPageProps) {
   }
   const { matchedRules } = computeLeadScore(scoringInput)
 
-  // Fetch creator info
   let creatorLabel: string | null = null
   if (lead.created_by) {
     const { data: creator } = await supabase
@@ -91,7 +89,6 @@ export default async function LeadPage({ params }: LeadPageProps) {
     }
   }
 
-  // Fetch pending tasks for this lead
   const { data: taskRows } = await supabase
     .from('tasks')
     .select('id, title, due_at, priority, status')
@@ -108,7 +105,6 @@ export default async function LeadPage({ params }: LeadPageProps) {
     status: t.status,
   }))
 
-  // Fetch activities timeline
   const { data: activitiesRows } = await supabase
     .from('activities')
     .select(
@@ -129,7 +125,6 @@ export default async function LeadPage({ params }: LeadPageProps) {
     users: Array.isArray(a.users) ? (a.users[0] ?? null) : (a.users ?? null),
   }))
 
-  // Fetch current user name for ActivityForm
   const { data: currentUserRow } = await supabase
     .from('users')
     .select('name')
@@ -163,12 +158,13 @@ export default async function LeadPage({ params }: LeadPageProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/leads" className="text-sm text-gray-500 hover:text-gray-700">
-          ← Leads
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <Link href="/leads" style={{ fontSize: 12, color: 'var(--color-gray-400)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <IconArrowLeft size={14} stroke={1.5} aria-hidden />
+          Leads
         </Link>
-        <span className="text-gray-300">/</span>
-        <h1 className="text-xl font-semibold text-gray-900 truncate">{lead.title}</h1>
+        <span style={{ color: 'var(--color-gray-200)' }}>/</span>
+        <h1 className="topbar-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.title}</h1>
       </div>
 
       <LeadDetail

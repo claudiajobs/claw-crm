@@ -1,5 +1,6 @@
 import { logout } from '@/lib/actions/auth'
 import { createClient } from '@/lib/supabase/server'
+import { IconLogout } from '@tabler/icons-react'
 
 export default async function Header() {
   const supabase = await createClient()
@@ -24,26 +25,37 @@ export default async function Header() {
   }
   const roleLabel = profile?.role ? (ROLE_LABELS[profile.role] ?? profile.role) : 'Representante'
 
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .map((w: string) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
   return (
-    <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-6">
-      {/* Breadcrumb / título — preenchido por cada página via slot */}
+    <header className="topbar">
+      {/* Page title slot */}
       <div id="page-title" />
 
-      {/* Usuário + logout */}
-      <div className="flex items-center gap-4">
-        <div className="text-right">
-          <p className="text-sm font-medium text-gray-900 leading-none">
+      {/* User + logout */}
+      <div className="topbar-actions">
+        <div style={{ textAlign: 'right', marginRight: 8 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-gray-800)', lineHeight: 1.2 }}>
             {displayName}
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">{roleLabel}</p>
+          <p style={{ fontSize: 10, color: 'var(--color-gray-400)', marginTop: 1 }}>{roleLabel}</p>
         </div>
+
+        <div className="avatar avatar-sm avatar-purple">{initials}</div>
 
         <form action={logout}>
           <button
             type="submit"
-            className="text-sm text-gray-500 hover:text-gray-900 transition-colors
-                       border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-300"
+            className="btn btn-ghost btn-sm"
+            aria-label="Sair"
           >
+            <IconLogout size={14} stroke={1.5} aria-hidden />
             Sair
           </button>
         </form>

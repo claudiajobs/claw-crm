@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef } from 'react'
+import { IconSearch } from '@tabler/icons-react'
 
 interface ContactSearchProps {
   defaultValue: string
@@ -27,30 +28,24 @@ export default function ContactSearch({ defaultValue }: ContactSearchProps) {
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex items-center gap-2">
-      <input
-        type="text"
-        name="q"
-        defaultValue={defaultValue}
-        placeholder="Buscar por nome..."
-        className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm
-                   placeholder:text-gray-400 focus:border-red-500 focus:ring-1
-                   focus:ring-red-500 outline-none transition-colors"
-      />
-      <button
-        type="submit"
-        className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white
-                   hover:bg-gray-800 transition-colors"
-      >
+    <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="input-icon-wrap" style={{ flex: 1 }}>
+        <span className="input-icon">
+          <IconSearch size={16} stroke={1.5} aria-hidden />
+        </span>
+        <input
+          type="text"
+          name="q"
+          defaultValue={defaultValue}
+          placeholder="Buscar por nome..."
+          className="input"
+        />
+      </div>
+      <button type="submit" className="btn btn-primary">
         Buscar
       </button>
       {defaultValue && (
-        <button
-          type="button"
-          onClick={handleClear}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium
-                     text-gray-600 hover:bg-gray-50 transition-colors"
-        >
+        <button type="button" onClick={handleClear} className="btn btn-ghost">
           Limpar
         </button>
       )}

@@ -10,7 +10,6 @@ export default async function ApiKeysPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Only admins can manage API keys
   const { data: profile } = await supabase
     .from('users')
     .select('role')
@@ -19,8 +18,8 @@ export default async function ApiKeysPage() {
 
   if (profile?.role !== 'admin') {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
-        <p className="text-gray-500 text-sm">
+      <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+        <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>
           Apenas administradores podem gerenciar chaves de API.
         </p>
       </div>

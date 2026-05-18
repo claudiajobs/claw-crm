@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import LeadScoreBadge from '@/components/crm/leads/LeadScoreBadge'
+import { IconPlus } from '@tabler/icons-react'
 
 const PAGE_SIZE = 25
 
@@ -14,14 +15,14 @@ const STATUS_LABEL: Record<string, string> = {
   perdido: 'Perdido',
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  novo: 'bg-blue-100 text-blue-700',
-  contatado: 'bg-indigo-100 text-indigo-700',
-  qualificado: 'bg-purple-100 text-purple-700',
-  proposta: 'bg-yellow-100 text-yellow-700',
-  negociacao: 'bg-orange-100 text-orange-700',
-  ganho: 'bg-green-100 text-green-700',
-  perdido: 'bg-gray-100 text-gray-500',
+const STATUS_BADGE: Record<string, string> = {
+  novo:        'badge badge-sq badge-purple',
+  contatado:   'badge badge-sq badge-blue',
+  qualificado: 'badge badge-sq badge-blue',
+  proposta:    'badge badge-sq badge-amber',
+  negociacao:  'badge badge-sq badge-coral',
+  ganho:       'badge badge-sq badge-teal',
+  perdido:     'badge badge-sq badge-gray',
 }
 
 const ALL_STATUSES = Object.keys(STATUS_LABEL)
@@ -89,26 +90,20 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
 
   return (
     <div>
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">Leads</h1>
-        <Link
-          href="/leads/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm
-                     font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          + Novo lead
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <h1 className="topbar-title">Leads</h1>
+        <Link href="/leads/new" className="btn btn-primary">
+          <IconPlus size={14} stroke={1.5} aria-hidden />
+          Novo lead
         </Link>
       </div>
 
-      {/* Filtros de status */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
+      {/* Status filter chips */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <Link
           href="/leads"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors
-            ${!activeStatus
-              ? 'bg-gray-900 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={!activeStatus ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost'}
         >
           Todos
         </Link>
@@ -116,57 +111,44 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
           <Link
             key={s}
             href={buildUrl({ status: s })}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors
-              ${activeStatus === s
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={activeStatus === s ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost'}
           >
             {STATUS_LABEL[s]}
           </Link>
         ))}
       </div>
 
-      {/* Erro */}
+      {/* Error */}
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 mb-4">
-          <p className="text-sm text-red-700">Erro ao carregar leads: {error.message}</p>
+        <div className="card" style={{ borderLeft: '3px solid var(--color-danger)', marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: '#C44040' }}>Erro ao carregar leads: {error.message}</p>
         </div>
       )}
 
-      {/* Tabela */}
+      {/* Table */}
       {page.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
-          <p className="text-gray-400 text-sm">Nenhum lead encontrado.</p>
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Nenhum lead encontrado.</p>
           <Link
             href="/leads/new"
-            className="mt-4 inline-block text-sm text-red-600 hover:underline"
+            style={{ marginTop: 16, display: 'inline-block', fontSize: 13, color: 'var(--color-primary)' }}
           >
             Criar primeiro lead
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Título
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Contato
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Score
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Valor (R$)
-                </th>
+              <tr>
+                <th>Título</th>
+                <th>Contato</th>
+                <th>Status</th>
+                <th>Score</th>
+                <th>Valor (R$)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody>
               {page.map((lead) => {
                 const contact = Array.isArray(lead.contacts)
                   ? lead.contacts[0]
@@ -176,25 +158,22 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
                   : '—'
 
                 return (
-                  <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      <Link href={`/leads/${lead.id}`} className="hover:text-red-600 hover:underline">
+                  <tr key={lead.id}>
+                    <td style={{ fontWeight: 600 }}>
+                      <Link href={`/leads/${lead.id}`} style={{ color: 'var(--color-gray-800)', textDecoration: 'none' }}>
                         {lead.title}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{contactName}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                          ${STATUS_COLOR[lead.status] ?? 'bg-gray-100 text-gray-500'}`}
-                      >
+                    <td style={{ color: 'var(--color-gray-600)' }}>{contactName}</td>
+                    <td>
+                      <span className={STATUS_BADGE[lead.status] ?? 'badge badge-sq badge-gray'}>
                         {STATUS_LABEL[lead.status] ?? lead.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td>
                       <LeadScoreBadge score={lead.score ?? 0} />
                     </td>
-                    <td className="px-6 py-4 text-gray-600">
+                    <td style={{ color: 'var(--color-gray-600)' }}>
                       {lead.value != null
                         ? Number(lead.value).toLocaleString('pt-BR', {
                             style: 'currency',
@@ -208,13 +187,13 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
             </tbody>
           </table>
 
-          {/* Paginação cursor-based */}
+          {/* Cursor pagination */}
           {(cursor || hasMore) && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderTop: '0.5px solid var(--color-gray-100)' }}>
               {cursor ? (
                 <Link
                   href={buildUrl({ status: activeStatus })}
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  style={{ fontSize: 12, color: 'var(--color-gray-600)', textDecoration: 'none' }}
                 >
                   ← Primeira página
                 </Link>
@@ -224,7 +203,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               {nextCursor && (
                 <Link
                   href={buildUrl({ status: activeStatus, cursor: nextCursor })}
-                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
                 >
                   Próxima página →
                 </Link>

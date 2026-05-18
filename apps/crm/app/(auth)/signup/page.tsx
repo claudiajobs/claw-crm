@@ -9,22 +9,27 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const { erro } = await searchParams
 
   return (
-    <div className="w-full max-w-md">
-      <div className="bg-white rounded-2xl shadow-lg px-8 py-10">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">CLAW CRM</h1>
-          <p className="text-sm text-gray-500 mt-1">Crie sua conta</p>
+    <div style={{ width: '100%', maxWidth: 420 }}>
+      <div className="card" style={{ padding: '40px 32px', borderRadius: 'var(--radius-xl)' }}>
+        {/* Logo */}
+        <div style={{ marginBottom: 32, textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div className="sb-mark" style={{ width: 36, height: 36, fontSize: 16 }}>S</div>
+            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gray-800)', letterSpacing: '-0.02em' }}>sevende</span>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Crie sua conta</p>
         </div>
 
+        {/* Error */}
         {erro && (
-          <div className="mb-6 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
-            <p className="text-sm text-red-700">{erro}</p>
+          <div style={{ marginBottom: 24, padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-danger-light)', borderLeft: '3px solid var(--color-danger)' }}>
+            <p style={{ fontSize: 12, color: '#C44040' }}>{erro}</p>
           </div>
         )}
 
-        <form action={signup} className="space-y-5">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <form action={signup} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="field">
+            <label htmlFor="name" className="field-label">
               Nome completo
             </label>
             <input
@@ -34,14 +39,12 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               autoComplete="name"
               required
               placeholder="Seu nome"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
-                         text-gray-900 placeholder-gray-400
-                         focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="input"
             />
           </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="field">
+            <label htmlFor="email" className="field-label">
               E-mail
             </label>
             <input
@@ -51,14 +54,12 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               autoComplete="email"
               required
               placeholder="voce@empresa.com"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
-                         text-gray-900 placeholder-gray-400
-                         focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="input"
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="field">
+            <label htmlFor="password" className="field-label">
               Senha
             </label>
             <input
@@ -69,26 +70,18 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               required
               minLength={6}
               placeholder="Minimo 6 caracteres"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
-                         text-gray-900 placeholder-gray-400
-                         focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="input"
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold
-                       text-white hover:bg-red-700 active:bg-red-800
-                       focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
-                       transition-colors"
-          >
+          <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
             Criar conta
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p style={{ marginTop: 24, textAlign: 'center', fontSize: 12, color: 'var(--color-gray-400)' }}>
           Ja tem conta?{' '}
-          <Link href="/login" className="text-red-600 hover:underline font-medium">
+          <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
             Entrar
           </Link>
         </p>

@@ -1,46 +1,43 @@
 export default function ContactDetailLoading() {
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-        <div className="h-4 w-2 bg-gray-100 rounded animate-pulse" />
-        <div className="h-7 w-48 bg-gray-200 rounded animate-pulse" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+        <div style={{ height: 16, width: 80, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)' }} />
+        <div style={{ height: 16, width: 8, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-xs)' }} />
+        <div style={{ height: 28, width: 192, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)' }} />
       </div>
 
-      <div className="space-y-6">
-        {/* Contact info skeleton */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-5" />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="space-y-1">
-                <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
-                <div className="h-4 w-28 bg-gray-200 rounded animate-pulse" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="card">
+          <div style={{ height: 24, width: 160, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)', marginBottom: 20 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px 24px' }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={{ height: 12, width: 64, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-xs)' }} />
+                <div style={{ height: 16, width: 112, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)' }} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Leads skeleton */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-3" />
-          <div className="space-y-3">
+        <div className="card">
+          <div style={{ height: 16, width: 96, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)', marginBottom: 12 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[0, 1].map((i) => (
-              <div key={i} className="h-10 bg-gray-100 rounded animate-pulse" />
+              <div key={i} style={{ height: 40, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-xs)' }} />
             ))}
           </div>
         </div>
 
-        {/* Activities skeleton */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-4" />
-          <div className="space-y-4">
+        <div className="card">
+          <div style={{ height: 16, width: 96, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)', marginBottom: 16 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {[0, 1, 2].map((i) => (
-              <div key={i} className="flex gap-3">
-                <div className="w-1.5 rounded-full bg-gray-200" />
-                <div className="flex-1 space-y-1">
-                  <div className="h-3 w-40 bg-gray-100 rounded animate-pulse" />
-                  <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
+              <div key={i} style={{ display: 'flex', gap: 12 }}>
+                <div style={{ width: 6, borderRadius: 'var(--radius-full)', background: 'var(--color-gray-200)' }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ height: 12, width: 160, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-xs)' }} />
+                  <div style={{ height: 16, width: 256, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)' }} />
                 </div>
               </div>
             ))}

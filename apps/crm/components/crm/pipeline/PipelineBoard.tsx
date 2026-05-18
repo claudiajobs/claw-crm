@@ -131,19 +131,19 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
   return (
     <div>
       {/* Live badge */}
-      <div className="flex items-center gap-2 mb-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         {isLive && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-xs font-medium text-green-700">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+          <span className="badge badge-teal" style={{ gap: 6 }}>
+            <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8 }}>
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--color-success)', opacity: 0.4, animation: 'pulse 1.5s infinite' }} />
+              <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8, borderRadius: '50%', background: 'var(--color-success)' }} />
             </span>
             Ao vivo
           </span>
         )}
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="kanban-board">
         {COLUMNS.map(({ status, label }) => (
           <PipelineColumn
             key={status}

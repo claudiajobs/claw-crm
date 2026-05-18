@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { revokeApiKey } from '@/lib/actions/api-keys'
 import CreateApiKeyModal from './CreateApiKeyModal'
+import { IconPlus } from '@tabler/icons-react'
 
 interface ApiKey {
   id: string
@@ -66,79 +67,65 @@ export default function ApiKeyList({ initialKeys }: ApiKeyListProps) {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Chaves de API</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="topbar-title">Chaves de API</h1>
+          <p className="topbar-sub">
             Chaves usadas por robot SDRs e integrações externas
           </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm
-                     font-semibold text-white hover:bg-red-700 transition-colors"
-        >
-          + Nova chave
+        <button onClick={() => setShowModal(true)} className="btn btn-primary">
+          <IconPlus size={14} stroke={1.5} aria-hidden />
+          Nova chave
         </button>
       </div>
 
       {/* Active keys */}
       {activeKeys.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center mb-6">
-          <p className="text-gray-400 text-sm">Nenhuma chave de API ativa.</p>
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center', marginBottom: 24 }}>
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Nenhuma chave de API ativa.</p>
           <button
             onClick={() => setShowModal(true)}
-            className="mt-4 inline-block text-sm text-red-600 hover:underline"
+            style={{ marginTop: 16, fontSize: 13, color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
           >
             Criar primeira chave
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
-          <table className="w-full text-sm">
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
+          <table className="data-table">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Nome
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Permissões
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Último uso
-                </th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Criado em
-                </th>
-                <th className="px-6 py-3" />
+              <tr>
+                <th>Nome</th>
+                <th>Permissões</th>
+                <th>Último uso</th>
+                <th>Criado em</th>
+                <th style={{ width: 80 }} />
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody>
               {activeKeys.map((key) => (
-                <tr key={key.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">{key.label}</td>
-                  <td className="px-6 py-4 text-gray-500 max-w-xs">
-                    <div className="flex flex-wrap gap-1">
+                <tr key={key.id}>
+                  <td style={{ fontWeight: 600 }}>{key.label}</td>
+                  <td style={{ whiteSpace: 'normal' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                       {Object.entries(key.permissions).map(([resource, actions]) =>
                         (actions as string[]).map((action) => (
-                          <span
-                            key={`${resource}:${action}`}
-                            className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-                          >
+                          <span key={`${resource}:${action}`} className="badge badge-gray">
                             {resource}:{action}
                           </span>
                         ))
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{formatDate(key.last_used_at)}</td>
-                  <td className="px-6 py-4 text-gray-500">{formatDate(key.created_at)}</td>
-                  <td className="px-6 py-4 text-right">
+                  <td style={{ color: 'var(--color-gray-400)' }}>{formatDate(key.last_used_at)}</td>
+                  <td style={{ color: 'var(--color-gray-400)' }}>{formatDate(key.created_at)}</td>
+                  <td style={{ textAlign: 'right' }}>
                     <button
                       onClick={() => handleRevoke(key.id, key.label)}
                       disabled={revokingId === key.id}
-                      className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors
-                                 disabled:opacity-50"
+                      className="btn btn-sm btn-danger"
+                      style={{ opacity: revokingId === key.id ? 0.5 : 1 }}
                     >
                       {revokingId === key.id ? 'Revogando...' : 'Revogar'}
                     </button>
@@ -152,20 +139,18 @@ export default function ApiKeyList({ initialKeys }: ApiKeyListProps) {
 
       {/* Revoked keys */}
       {revokedKeys.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-3 border-b border-gray-100 bg-gray-50">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Chaves revogadas
-            </p>
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '9px 14px', borderBottom: '1px solid var(--color-gray-100)', background: 'var(--color-gray-50)' }}>
+            <p className="text-label">Chaves revogadas</p>
           </div>
-          <table className="w-full text-sm">
-            <tbody className="divide-y divide-gray-50">
+          <table className="data-table">
+            <tbody>
               {revokedKeys.map((key) => (
-                <tr key={key.id} className="opacity-50">
-                  <td className="px-6 py-3 font-medium text-gray-600 line-through">
+                <tr key={key.id} style={{ opacity: 0.5 }}>
+                  <td style={{ fontWeight: 600, textDecoration: 'line-through', color: 'var(--color-gray-600)' }}>
                     {key.label}
                   </td>
-                  <td className="px-6 py-3 text-gray-400 text-xs">
+                  <td style={{ color: 'var(--color-gray-400)', fontSize: 11 }}>
                     Revogada em {formatDate(key.revoked_at)}
                   </td>
                 </tr>

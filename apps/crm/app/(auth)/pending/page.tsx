@@ -1,31 +1,32 @@
 import { logout } from '@/lib/actions/auth'
+import { IconClock } from '@tabler/icons-react'
 
 export default function PendingPage() {
   return (
-    <div className="w-full max-w-md">
-      <div className="bg-white rounded-2xl shadow-lg px-8 py-10 text-center">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">CLAW CRM</h1>
+    <div style={{ width: '100%', maxWidth: 420 }}>
+      <div className="card" style={{ padding: '40px 32px', borderRadius: 'var(--radius-xl)', textAlign: 'center' }}>
+        {/* Logo */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <div className="sb-mark" style={{ width: 36, height: 36, fontSize: 16 }}>S</div>
+            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gray-800)', letterSpacing: '-0.02em' }}>sevende</span>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <div className="w-16 h-16 rounded-full bg-yellow-100 mx-auto flex items-center justify-center mb-4">
-            <span className="text-2xl">&#9202;</span>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-full)', background: 'var(--color-warning-light)', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <IconClock size={24} stroke={1.5} style={{ color: 'var(--color-warning)' }} aria-hidden />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 8 }}>
             Aguardando aprovacao
           </h2>
-          <p className="text-sm text-gray-500">
+          <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>
             Seu acesso esta sendo avaliado. Um administrador ira aprovar sua conta em breve.
           </p>
         </div>
 
         <form action={logout}>
-          <button
-            type="submit"
-            className="text-sm text-gray-500 hover:text-gray-900 transition-colors
-                       border border-gray-200 rounded-lg px-4 py-2 hover:border-gray-300"
-          >
+          <button type="submit" className="btn btn-ghost">
             Sair
           </button>
         </form>
