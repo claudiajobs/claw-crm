@@ -1,20 +1,28 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import {
+  IconTimeline,
+  IconBriefcase,
+  IconUsers,
+  IconCheckbox,
+  IconSettings,
+  IconKey,
+} from '@tabler/icons-react'
 
 interface NavItem {
   href: string
   label: string
-  icon: string
+  icon: React.ReactNode
   adminOnly?: boolean
 }
 
 const navItems: NavItem[] = [
-  { href: '/pipeline', label: 'Pipeline', icon: '📊' },
-  { href: '/leads', label: 'Leads', icon: '🎯' },
-  { href: '/contacts', label: 'Contatos', icon: '👥' },
-  { href: '/tasks', label: 'Tarefas', icon: '✅' },
-  { href: '/settings', label: 'Configurações', icon: '⚙️' },
-  { href: '/settings/users', label: 'Usuários', icon: '🔑', adminOnly: true },
+  { href: '/pipeline', label: 'Pipeline', icon: <IconTimeline size={17} stroke={1.5} aria-hidden /> },
+  { href: '/leads', label: 'Leads', icon: <IconBriefcase size={17} stroke={1.5} aria-hidden /> },
+  { href: '/contacts', label: 'Contatos', icon: <IconUsers size={17} stroke={1.5} aria-hidden /> },
+  { href: '/tasks', label: 'Tarefas', icon: <IconCheckbox size={17} stroke={1.5} aria-hidden /> },
+  { href: '/settings', label: 'Configurações', icon: <IconSettings size={17} stroke={1.5} aria-hidden /> },
+  { href: '/settings/users', label: 'Usuários', icon: <IconKey size={17} stroke={1.5} aria-hidden />, adminOnly: true },
 ]
 
 export default async function Sidebar() {
@@ -24,45 +32,69 @@ export default async function Sidebar() {
   } = await supabase.auth.getUser()
 
   let isAdmin = false
+  let userName = 'Usuário'
+  let userRole = 'Representante'
   if (user) {
     const { data: profile } = await supabase
       .from('users')
-      .select('role')
+      .select('role, name')
       .eq('id', user.id)
       .single()
     isAdmin = profile?.role === 'admin'
+    userName = profile?.name ?? user.email ?? 'Usuário'
+    const ROLE_LABELS: Record<string, string> = {
+      admin: 'Admin',
+      editor: 'Editor',
+      vendedor: 'Vendedor',
+      sdr: 'SDR',
+    }
+    userRole = profile?.role ? (ROLE_LABELS[profile.role] ?? profile.role) : 'Representante'
   }
 
   const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin)
 
+  const initials = userName
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
   return (
-    <aside className="w-60 min-h-screen bg-gray-900 flex flex-col">
-      {/* Marca */}
-      <div className="px-6 py-5 border-b border-gray-700">
-        <span className="text-white font-bold text-lg tracking-tight">
-          CLAW CRM
-        </span>
+    <aside className="sidebar">
+      {/* Logo */}
+      <div className="sb-logo">
+        <div className="sb-mark">S</div>
+        <span className="sb-wordmark">sevende</span>
       </div>
 
-      {/* Navegação */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      {/* Section label */}
+      <div className="sb-section-label">Menu</div>
+
+      {/* Navigation */}
+      <nav style={{ flex: 1 }}>
         {visibleItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                       text-gray-300 hover:bg-gray-800 hover:text-white
-                       transition-colors"
+            className="nav-item"
           >
-            <span className="text-base leading-none">{item.icon}</span>
+            {item.icon}
             {item.label}
           </Link>
         ))}
       </nav>
 
-      {/* Rodapé */}
-      <div className="px-6 py-4 border-t border-gray-700">
-        <p className="text-xs text-gray-500">v0.5.0 — Sprint 5</p>
+      {/* User */}
+      <div className="sb-user">
+        <div className="avatar avatar-sm avatar-purple">{initials}</div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-gray-800)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {userName}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--color-gray-400)' }}>{userRole}</div>
+        </div>
       </div>
     </aside>
   )

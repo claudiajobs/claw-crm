@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { generateApiKey, type GenerateApiKeyResult } from '@/lib/actions/api-keys'
+import { IconX, IconCopy, IconCheck } from '@tabler/icons-react'
 
 const RESOURCES = ['leads', 'contacts', 'activities', 'tasks'] as const
 const ACTIONS = ['read', 'write'] as const
@@ -50,7 +51,6 @@ export default function CreateApiKeyModal({ onClose, onCreated }: CreateApiKeyMo
       return
     }
 
-    // Build permissions object excluding empty resources
     const cleanPerms: Record<string, string[]> = {}
     for (const resource of RESOURCES) {
       if (permissions[resource]?.length) {
@@ -77,38 +77,31 @@ export default function CreateApiKeyModal({ onClose, onCreated }: CreateApiKeyMo
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4">
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+      <div className="card" style={{ width: '100%', maxWidth: 440, margin: 16, padding: 0, borderRadius: 'var(--radius-xl)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-900">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '0.5px solid var(--color-gray-100)' }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-gray-800)' }}>
             {createdKey ? 'Chave criada' : 'Nova chave de API'}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors text-lg leading-none"
-          >
-            ✕
+          <button onClick={onClose} className="btn-icon" aria-label="Fechar">
+            <IconX size={16} stroke={1.5} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5">
+        <div style={{ padding: '20px 24px' }}>
           {!createdKey ? (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {error && (
-                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3">
-                  <p className="text-sm text-red-700">{error}</p>
+                <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-danger-light)', borderLeft: '3px solid var(--color-danger)' }}>
+                  <p style={{ fontSize: 12, color: '#C44040' }}>{error}</p>
                 </div>
               )}
 
-              {/* Label */}
-              <div>
-                <label
-                  htmlFor="key-label"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Nome da chave <span className="text-red-500">*</span>
+              <div className="field">
+                <label htmlFor="key-label" className="field-label">
+                  Nome da chave <span className="req">*</span>
                 </label>
                 <input
                   id="key-label"
@@ -116,37 +109,33 @@ export default function CreateApiKeyModal({ onClose, onCreated }: CreateApiKeyMo
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                   placeholder="Ex: Robot SDR Alpha"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
-                             focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="input"
                 />
               </div>
 
-              {/* Permissions */}
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-3">
-                  Permissões <span className="text-red-500">*</span>
+                <p className="field-label" style={{ marginBottom: 12 }}>
+                  Permissões <span className="req">*</span>
                 </p>
-                <div className="space-y-3">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {RESOURCES.map((resource) => (
                     <div key={resource}>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                        {resource}
-                      </p>
-                      <div className="flex gap-3">
+                      <p className="text-label" style={{ marginBottom: 6 }}>{resource}</p>
+                      <div style={{ display: 'flex', gap: 12 }}>
                         {ACTIONS.map((action) => {
                           const checked = permissions[resource]?.includes(action) ?? false
                           return (
                             <label
                               key={action}
-                              className="flex items-center gap-2 cursor-pointer select-none"
+                              style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}
                             >
                               <input
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => togglePermission(resource, action)}
-                                className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                style={{ accentColor: 'var(--color-primary)' }}
                               />
-                              <span className="text-sm text-gray-700">{action}</span>
+                              <span style={{ fontSize: 13, color: 'var(--color-gray-600)' }}>{action}</span>
                             </label>
                           )
                         })}
@@ -156,75 +145,53 @@ export default function CreateApiKeyModal({ onClose, onCreated }: CreateApiKeyMo
                 </div>
               </div>
 
-              {/* Submit */}
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 8 }}>
+                <button type="button" onClick={onClose} className="btn btn-ghost">
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
-                >
+                <button type="submit" disabled={isPending} className="btn btn-primary" style={{ opacity: isPending ? 0.6 : 1 }}>
                   {isPending ? 'Gerando...' : 'Gerar chave'}
                 </button>
               </div>
             </form>
           ) : (
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Warning */}
-              <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
-                <p className="text-sm font-semibold text-amber-800 mb-0.5">
+              <div style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-warning-light)', borderLeft: '3px solid var(--color-warning)' }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#9A6600', marginBottom: 2 }}>
                   Guarde esta chave agora
                 </p>
-                <p className="text-sm text-amber-700">
+                <p style={{ fontSize: 12, color: '#9A6600' }}>
                   Esta chave não será exibida novamente. Copie e armazene em local seguro.
                 </p>
               </div>
 
               {/* Key display */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Chave de API
-                </p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 font-mono break-all">
+                <p className="text-label" style={{ marginBottom: 6 }}>Chave de API</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <code style={{ flex: 1, background: 'var(--color-gray-50)', border: '0.5px solid var(--color-gray-200)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 11, color: 'var(--color-gray-800)', fontFamily: 'var(--font-mono)', wordBreak: 'break-all' }}>
                     {createdKey.plainKey}
                   </code>
-                  <button
-                    onClick={handleCopy}
-                    className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm
-                               hover:bg-gray-50 transition-colors"
-                    title="Copiar chave"
-                  >
-                    {copied ? '✓' : '⎘'}
+                  <button onClick={handleCopy} className="btn-icon" title="Copiar chave" aria-label="Copiar chave">
+                    {copied ? <IconCheck size={16} stroke={1.5} /> : <IconCopy size={16} stroke={1.5} />}
                   </button>
                 </div>
               </div>
 
               {/* Meta */}
-              <div className="text-sm text-gray-600 space-y-1">
+              <div style={{ fontSize: 13, color: 'var(--color-gray-600)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <p><span style={{ fontWeight: 600 }}>Nome:</span> {createdKey.label}</p>
                 <p>
-                  <span className="font-medium">Nome:</span> {createdKey.label}
-                </p>
-                <p>
-                  <span className="font-medium">Permissões:</span>{' '}
+                  <span style={{ fontWeight: 600 }}>Permissões:</span>{' '}
                   {Object.entries(createdKey.permissions)
                     .map(([r, actions]) => `${r}: ${actions.join(', ')}`)
                     .join(' | ')}
                 </p>
               </div>
 
-              {/* Close */}
-              <div className="flex justify-end pt-2">
-                <button
-                  onClick={onClose}
-                  className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
-                >
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 8 }}>
+                <button onClick={onClose} className="btn btn-primary">
                   Entendido — fechar
                 </button>
               </div>

@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import LeadScoreBadge from '@/components/crm/leads/LeadScoreBadge'
+import { IconBrandWhatsapp, IconBrandInstagram, IconPhone } from '@tabler/icons-react'
 
-const CHANNEL_ICON: Record<string, string> = {
-  whatsapp: '💬',
-  instagram: '📸',
-  telefone: '📞',
+const CHANNEL_ICON: Record<string, React.ReactNode> = {
+  whatsapp: <IconBrandWhatsapp size={14} stroke={1.5} aria-hidden style={{ color: 'var(--color-success)' }} />,
+  instagram: <IconBrandInstagram size={14} stroke={1.5} aria-hidden style={{ color: 'var(--color-primary)' }} />,
+  telefone: <IconPhone size={14} stroke={1.5} aria-hidden style={{ color: 'var(--color-gray-400)' }} />,
 }
 
 export interface LeadCardData {
@@ -22,17 +23,11 @@ interface LeadCardProps {
 
 export default function LeadCard({ lead }: LeadCardProps) {
   return (
-    <div
-      draggable
-      data-lead-id={lead.id}
-      className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm
-                 hover:border-gray-300 hover:shadow transition-all cursor-grab active:cursor-grabbing
-                 select-none"
-    >
-      <div className="flex items-start justify-between gap-2">
+    <div className="deal-card">
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
         <Link
           href={`/leads/${lead.id}`}
-          className="text-sm font-medium text-gray-900 hover:text-red-600 leading-snug line-clamp-2"
+          style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-gray-800)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textDecoration: 'none' }}
           onClick={(e) => e.stopPropagation()}
         >
           {lead.title}
@@ -40,15 +35,15 @@ export default function LeadCard({ lead }: LeadCardProps) {
         <LeadScoreBadge score={lead.score} />
       </div>
 
-      <div className="mt-2 flex items-center gap-1.5">
-        {lead.preferred_channel && (
-          <span className="text-xs">{CHANNEL_ICON[lead.preferred_channel] ?? ''}</span>
-        )}
-        <span className="text-xs text-gray-500 truncate">{lead.contact_name}</span>
+      <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+        {lead.preferred_channel && CHANNEL_ICON[lead.preferred_channel]}
+        <span style={{ fontSize: 11, color: 'var(--color-gray-400)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {lead.contact_name}
+        </span>
       </div>
 
       {lead.value != null && (
-        <p className="mt-1.5 text-xs font-medium text-gray-700">
+        <p style={{ marginTop: 6, fontSize: 13, fontWeight: 700, color: 'var(--color-gray-800)', letterSpacing: '-0.02em' }}>
           {Number(lead.value).toLocaleString('pt-BR', {
             style: 'currency',
             currency: 'BRL',

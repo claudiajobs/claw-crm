@@ -1,29 +1,23 @@
 export default function PipelineLoading() {
   return (
     <div>
-      <div className="mb-6">
-        <div className="h-7 w-20 bg-gray-200 rounded animate-pulse" />
-        <div className="h-4 w-72 bg-gray-100 rounded animate-pulse mt-1.5" />
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ height: 28, width: 80, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-sm)' }} />
+        <div style={{ height: 16, width: 288, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-sm)', marginTop: 6 }} />
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="kanban-board">
         {Array.from({ length: 7 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex flex-col min-w-[220px] max-w-[220px] bg-gray-50 rounded-xl border border-gray-200"
-          >
-            <div className="px-3 py-2.5 border-b border-gray-200">
-              <div className="h-3 w-20 bg-gray-300 rounded animate-pulse" />
+          <div key={i} className="kanban-col">
+            <div style={{ padding: '0 4px 4px' }}>
+              <div style={{ height: 12, width: 80, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)' }} />
             </div>
-            <div className="p-2 space-y-2">
+            <div className="kanban-drop-zone">
               {Array.from({ length: Math.max(1, 3 - i) }).map((_, j) => (
-                <div
-                  key={j}
-                  className="bg-white rounded-lg border border-gray-200 p-3 space-y-2"
-                >
-                  <div className="h-4 w-full bg-gray-200 rounded animate-pulse" />
-                  <div className="h-3 w-24 bg-gray-100 rounded animate-pulse" />
-                  <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
+                <div key={j} className="deal-card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ height: 16, width: '100%', background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)' }} />
+                  <div style={{ height: 12, width: 96, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-xs)' }} />
+                  <div style={{ height: 12, width: 64, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-xs)' }} />
                 </div>
               ))}
             </div>

@@ -1,8 +1,17 @@
 'use client'
 
 import { useOptimistic, useTransition, useEffect, useState, useCallback } from 'react'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 import PipelineColumn from './PipelineColumn'
-import type { LeadCardData } from './LeadCard'
+import LeadCard, { type LeadCardData } from './LeadCard'
 import { updateLeadStatus } from '@/lib/actions/leads'
 import { createClient } from '@/lib/supabase/client'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
@@ -35,6 +44,11 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
   const [, startTransition] = useTransition()
   const [liveLeads, setLiveLeads] = useState(initialLeads)
   const [isLive, setIsLive] = useState(false)
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  )
 
   // Sync server-rendered leads on navigation
   useEffect(() => {
@@ -123,38 +137,57 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
     })
   }
 
-  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(event.active.id as string)
   }
+
+  function handleDragEnd(event: DragEndEvent) {
+    setActiveId(null)
+    const { active, over } = event
+    if (!over) return
+    handleDrop(active.id as string, over.id as string)
+  }
+
+  const activeLead = activeId
+    ? optimisticLeads.find((l) => l.id === activeId) ?? null
+    : null
 
   return (
     <div>
       {/* Live badge */}
-      <div className="flex items-center gap-2 mb-3">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         {isLive && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-xs font-medium text-green-700">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+          <span className="badge badge-teal" style={{ gap: 6 }}>
+            <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8 }}>
+              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--color-success)', opacity: 0.4, animation: 'pulse 1.5s infinite' }} />
+              <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8, borderRadius: '50%', background: 'var(--color-success)' }} />
             </span>
             Ao vivo
           </span>
         )}
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-4">
-        {COLUMNS.map(({ status, label }) => (
-          <PipelineColumn
-            key={status}
-            status={status}
-            label={label}
-            leads={optimisticLeads.filter((l) => l.status === status)}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-          />
-        ))}
-      </div>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="kanban-board">
+          {COLUMNS.map(({ status, label }) => (
+            <PipelineColumn
+              key={status}
+              status={status}
+              label={label}
+              leads={optimisticLeads.filter((l) => l.status === status)}
+              activeId={activeId}
+            />
+          ))}
+        </div>
+
+        <DragOverlay dropAnimation={null}>
+          {activeLead ? (
+            <div style={{ width: 220, opacity: 0.9 }}>
+              <LeadCard lead={activeLead} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   )
 }

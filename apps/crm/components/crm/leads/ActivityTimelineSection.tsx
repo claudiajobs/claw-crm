@@ -27,8 +27,8 @@ export default function ActivityTimelineSection({
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-sm font-semibold text-gray-900 mb-4">Atividades</h3>
+      <div className="card">
+        <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 16 }}>Atividades</h3>
         <ActivityTimeline activities={optimisticActivities} currentUserId={currentUserId} />
       </div>
 

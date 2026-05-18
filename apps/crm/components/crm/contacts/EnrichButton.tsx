@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { triggerEnrichment } from '@/lib/actions/enrichment'
+import { IconSparkles, IconCheck, IconClock } from '@tabler/icons-react'
 
 interface EnrichButtonProps {
   contactId: string
@@ -15,7 +16,8 @@ export default function EnrichButton({ contactId, enrichedAt }: EnrichButtonProp
   if (enrichedAt) {
     const date = new Date(enrichedAt).toLocaleDateString('pt-BR')
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700">
+      <span className="badge badge-teal" style={{ gap: 6, padding: '4px 10px' }}>
+        <IconCheck size={12} stroke={1.5} aria-hidden />
         Enriquecido em {date}
       </span>
     )
@@ -30,26 +32,27 @@ export default function EnrichButton({ contactId, enrichedAt }: EnrichButtonProp
 
   if (result?.success) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1.5 text-xs font-medium text-yellow-700">
+      <span className="badge badge-amber" style={{ gap: 6, padding: '4px 10px' }}>
+        <IconClock size={12} stroke={1.5} aria-hidden />
         Enriquecimento solicitado
       </span>
     )
   }
 
   return (
-    <div className="inline-flex flex-col items-start gap-1">
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
       <button
         type="button"
         onClick={handleClick}
         disabled={isPending}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white
-                   px-3 py-1.5 text-xs font-semibold text-gray-700
-                   hover:bg-gray-50 disabled:opacity-50 transition-colors"
+        className="btn btn-sm btn-ghost"
+        style={{ opacity: isPending ? 0.5 : 1 }}
       >
+        <IconSparkles size={14} stroke={1.5} aria-hidden />
         {isPending ? 'Enriquecendo...' : 'Enriquecer contato'}
       </button>
       {result?.error && (
-        <span className="text-xs text-red-600">{result.error}</span>
+        <span style={{ fontSize: 11, color: '#C44040' }}>{result.error}</span>
       )}
     </div>
   )

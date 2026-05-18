@@ -49,7 +49,6 @@ export default function ActivityForm({
     const outcome = (formData.get('outcome') as string)?.trim() || null
     const scheduledAt = formData.get('scheduled_at') as string
 
-    // Build optimistic activity
     const optimisticActivity: Activity = {
       id: `temp-${Date.now()}`,
       type,
@@ -80,96 +79,45 @@ export default function ActivityForm({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
-      <h3 className="text-sm font-semibold text-gray-900 mb-4">Registrar atividade</h3>
+    <div className="card">
+      <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 16 }}>Registrar atividade</h3>
 
-      <form ref={formRef} action={handleSubmit} className="space-y-4">
+      <form ref={formRef} action={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <input type="hidden" name="contact_id" value={contactId} />
         {leadId && <input type="hidden" name="lead_id" value={leadId} />}
 
-        {/* Tipo */}
-        <div>
-          <label htmlFor="activity-type" className="block text-xs font-medium text-gray-700 mb-1">
-            Tipo
-          </label>
-          <select
-            id="activity-type"
-            name="type"
-            required
-            defaultValue="nota"
-            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-          >
+        <div className="field">
+          <label htmlFor="activity-type" className="field-label">Tipo</label>
+          <select id="activity-type" name="type" required defaultValue="nota" className="input">
             {ACTIVITY_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
+              <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
         </div>
 
-        {/* Assunto */}
-        <div>
-          <label htmlFor="activity-subject" className="block text-xs font-medium text-gray-700 mb-1">
-            Assunto
-          </label>
-          <input
-            id="activity-subject"
-            name="subject"
-            type="text"
-            placeholder="Ex: Primeiro contato, Follow-up, Proposta enviada"
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-          />
+        <div className="field">
+          <label htmlFor="activity-subject" className="field-label">Assunto</label>
+          <input id="activity-subject" name="subject" type="text" placeholder="Ex: Primeiro contato, Follow-up, Proposta enviada" className="input" />
         </div>
 
-        {/* Descrição */}
-        <div>
-          <label htmlFor="activity-body" className="block text-xs font-medium text-gray-700 mb-1">
-            Descrição
-          </label>
-          <textarea
-            id="activity-body"
-            name="body"
-            rows={3}
-            placeholder="O que aconteceu? O que foi discutido?"
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-          />
+        <div className="field">
+          <label htmlFor="activity-body" className="field-label">Descrição</label>
+          <textarea id="activity-body" name="body" rows={3} placeholder="O que aconteceu? O que foi discutido?" className="input" />
         </div>
 
-        {/* Resultado / Próximo passo */}
-        <div>
-          <label htmlFor="activity-outcome" className="block text-xs font-medium text-gray-700 mb-1">
-            Resultado / Próximo passo
-          </label>
-          <textarea
-            id="activity-outcome"
-            name="outcome"
-            rows={2}
-            placeholder="Ex: Cliente pediu orçamento para 500L. Ligar na sexta."
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-          />
+        <div className="field">
+          <label htmlFor="activity-outcome" className="field-label">Resultado / Próximo passo</label>
+          <textarea id="activity-outcome" name="outcome" rows={2} placeholder="Ex: Cliente pediu orçamento para 500L. Ligar na sexta." className="input" />
         </div>
 
-        {/* Data e hora */}
-        <div>
-          <label htmlFor="activity-scheduled-at" className="block text-xs font-medium text-gray-700 mb-1">
-            Data e hora
-          </label>
-          <input
-            id="activity-scheduled-at"
-            name="scheduled_at"
-            type="datetime-local"
-            defaultValue={toLocalDatetimeString(new Date())}
-            className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-          />
+        <div className="field">
+          <label htmlFor="activity-scheduled-at" className="field-label">Data e hora</label>
+          <input id="activity-scheduled-at" name="scheduled_at" type="datetime-local" defaultValue={toLocalDatetimeString(new Date())} className="input" />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="field-error">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-        >
+        <button type="submit" disabled={isPending} className="btn btn-primary" style={{ alignSelf: 'flex-start', opacity: isPending ? 0.5 : 1 }}>
           {isPending ? 'Registrando...' : 'Registrar atividade'}
         </button>
       </form>
@@ -187,7 +135,7 @@ export default function ActivityForm({
 }
 
 // ---------------------------------------------------------------------------
-// FollowUpTaskLink — quick inline task creation after logging activity
+// FollowUpTaskLink
 // ---------------------------------------------------------------------------
 function FollowUpTaskLink({
   contactId,
@@ -206,9 +154,9 @@ function FollowUpTaskLink({
 
   if (created) {
     return (
-      <p className="mt-3 text-xs text-green-700 bg-green-50 rounded px-3 py-2">
+      <p style={{ marginTop: 12, fontSize: 11, color: '#007A61', background: 'var(--color-success-light)', borderRadius: 'var(--radius-xs)', padding: '6px 12px' }}>
         Tarefa criada com sucesso.{' '}
-        <button type="button" onClick={onDismiss} className="underline">
+        <button type="button" onClick={onDismiss} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit' }}>
           Fechar
         </button>
       </p>
@@ -217,15 +165,15 @@ function FollowUpTaskLink({
 
   if (!expanded) {
     return (
-      <div className="mt-3 flex items-center gap-3">
+      <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="text-xs font-medium text-red-600 hover:text-red-800"
+          style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           + Criar tarefa de follow-up
         </button>
-        <button type="button" onClick={onDismiss} className="text-xs text-gray-400 hover:text-gray-600">
+        <button type="button" onClick={onDismiss} style={{ fontSize: 11, color: 'var(--color-gray-400)', background: 'none', border: 'none', cursor: 'pointer' }}>
           Dispensar
         </button>
       </div>
@@ -237,7 +185,6 @@ function FollowUpTaskLink({
     startTransition(async () => {
       const { createTask } = await import('@/lib/actions/tasks')
 
-      // Inject contact_id and lead_id
       formData.set('contact_id', contactId)
       if (leadId) formData.set('lead_id', leadId)
       formData.set('priority', 'medio')
@@ -252,38 +199,19 @@ function FollowUpTaskLink({
   }
 
   return (
-    <form ref={formRef} action={handleCreateTask} className="mt-3 space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
-      <p className="text-xs font-medium text-gray-700">Criar tarefa de follow-up</p>
+    <form ref={formRef} action={handleCreateTask} style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8, background: 'var(--color-gray-50)', borderRadius: 'var(--radius-sm)', padding: 12, border: '0.5px solid var(--color-gray-200)' }}>
+      <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-gray-800)' }}>Criar tarefa de follow-up</p>
 
-      <input
-        name="title"
-        type="text"
-        required
-        placeholder="Título da tarefa (ex: Ligar para João na sexta)"
-        className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-      />
+      <input name="title" type="text" required placeholder="Título da tarefa (ex: Ligar para João na sexta)" className="input" style={{ height: 34 }} />
+      <input name="due_at" type="datetime-local" className="input" style={{ height: 34 }} />
 
-      <input
-        name="due_at"
-        type="datetime-local"
-        className="block w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-900 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-      />
+      {taskError && <p style={{ fontSize: 11, color: '#C44040' }}>{taskError}</p>}
 
-      {taskError && <p className="text-xs text-red-600">{taskError}</p>}
-
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
-        >
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="submit" disabled={isPending} className="btn btn-sm btn-primary" style={{ opacity: isPending ? 0.5 : 1 }}>
           {isPending ? 'Criando...' : 'Criar tarefa'}
         </button>
-        <button
-          type="button"
-          onClick={() => { setExpanded(false); onDismiss() }}
-          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-        >
+        <button type="button" onClick={() => { setExpanded(false); onDismiss() }} className="btn btn-sm btn-ghost">
           Cancelar
         </button>
       </div>

@@ -1,34 +1,30 @@
 export default function LeadsLoading() {
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="h-7 w-16 bg-gray-200 rounded animate-pulse" />
-        <div className="h-9 w-28 bg-gray-200 rounded-lg animate-pulse" />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ height: 28, width: 64, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-sm)' }} />
+        <div style={{ height: 34, width: 112, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-sm)' }} />
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-6 w-20 bg-gray-200 rounded-full animate-pulse" />
+          <div key={i} style={{ height: 24, width: 80, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-full)' }} />
         ))}
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 border-b border-gray-100 px-6 py-3">
-          <div className="grid grid-cols-5 gap-4">
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ background: 'var(--color-gray-50)', borderBottom: '1px solid var(--color-gray-100)', padding: '9px 14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-4 bg-gray-200 rounded animate-pulse" />
+              <div key={i} style={{ height: 16, background: 'var(--color-gray-200)', borderRadius: 'var(--radius-xs)' }} />
             ))}
           </div>
         </div>
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="px-6 py-4 border-b border-gray-50">
-            <div className="grid grid-cols-5 gap-4">
+          <div key={i} style={{ padding: '10px 14px', borderBottom: '0.5px solid var(--color-gray-100)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
               {Array.from({ length: 5 }).map((_, j) => (
-                <div
-                  key={j}
-                  className="h-4 bg-gray-100 rounded animate-pulse"
-                  style={{ width: `${60 + (j * 10) % 40}%` }}
-                />
+                <div key={j} style={{ height: 16, background: 'var(--color-gray-100)', borderRadius: 'var(--radius-xs)', width: `${60 + (j * 10) % 40}%` }} />
               ))}
             </div>
           </div>

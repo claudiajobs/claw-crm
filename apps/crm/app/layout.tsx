@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'CLAW CRM',
+  title: 'sevende CRM',
   description: 'CRM para gestão de leads e clientes',
 }
 
