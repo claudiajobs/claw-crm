@@ -33,6 +33,15 @@
   --color-info:          #4A9EFF;
   --color-info-light:    #EAF4FF;
 
+  /* Semantic — text variants */
+  --color-danger-text:          #C44040;
+  --color-success-text:         #007A61;
+  --color-info-text:            #1A5FAD;
+  --color-warning-text:         #9A6600;
+  --color-delta-pos:            #008C74;
+  --color-white:                #FFFFFF;
+  --color-btn-secondary-hover:  #dfe2fb;
+
   /* Neutrals */
   --color-gray-50:  #F8F8FA;
   --color-gray-100: #EFEFEF;
@@ -179,7 +188,7 @@ input, select, textarea { font-family: var(--font-ui); }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--color-white);
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
@@ -228,7 +237,7 @@ input, select, textarea { font-family: var(--font-ui); }
   font-size: 10px;
   font-weight: 700;
   background: var(--color-danger);
-  color: #fff;
+  color: var(--color-white);
   padding: 1px 6px;
   border-radius: var(--radius-full);
 }
@@ -281,11 +290,11 @@ input, select, textarea { font-family: var(--font-ui); }
 }
 .btn:active { transform: scale(0.97); }
 
-.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary { background: var(--color-primary); color: var(--color-white); }
 .btn-primary:hover { background: var(--color-primary-dark); }
 
 .btn-secondary { background: var(--color-primary-light); color: var(--color-primary); }
-.btn-secondary:hover { background: #dfe2fb; }
+.btn-secondary:hover { background: var(--color-btn-secondary-hover); }
 
 .btn-ghost {
   background: transparent;
@@ -294,8 +303,8 @@ input, select, textarea { font-family: var(--font-ui); }
 }
 .btn-ghost:hover { background: var(--color-gray-50); }
 
-.btn-danger { background: var(--color-danger-light); color: #C44040; }
-.btn-success { background: var(--color-success-light); color: #007A61; }
+.btn-danger { background: var(--color-danger-light); color: var(--color-danger-text); }
+.btn-success { background: var(--color-success-light); color: var(--color-success-text); }
 
 .btn-sm { height: 28px; padding: 0 10px; font-size: 11px; border-radius: 6px; }
 .btn-lg { height: 44px; padding: 0 22px; font-size: 14px; border-radius: var(--radius-md); }
@@ -329,7 +338,7 @@ input, select, textarea { font-family: var(--font-ui); }
 .field-error {
   font-size: 11px;
   font-weight: 600;
-  color: #C44040;
+  color: var(--color-danger-text);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -453,8 +462,8 @@ select.input {
   align-items: center;
   gap: 3px;
 }
-.delta-pos { color: #008C74; }
-.delta-neg { color: #C44040; }
+.delta-pos { color: var(--color-delta-pos); }
+.delta-neg { color: var(--color-danger-text); }
 
 /* Deal card (kanban) */
 .deal-card {
@@ -483,10 +492,10 @@ select.input {
 .badge-sq { border-radius: 6px; padding: 3px 9px; }
 
 .badge-purple { background: var(--color-primary-light); color: var(--color-primary-dark); }
-.badge-blue   { background: var(--color-info-light);    color: #1A5FAD; }
-.badge-amber  { background: var(--color-warning-light); color: #9A6600; }
-.badge-teal   { background: var(--color-success-light); color: #007A61; }
-.badge-coral  { background: var(--color-danger-light);  color: #C44040; }
+.badge-blue   { background: var(--color-info-light);    color: var(--color-info-text); }
+.badge-amber  { background: var(--color-warning-light); color: var(--color-warning-text); }
+.badge-teal   { background: var(--color-success-light); color: var(--color-success-text); }
+.badge-coral  { background: var(--color-danger-light);  color: var(--color-danger-text); }
 .badge-gray   { background: var(--color-gray-100);      color: var(--color-gray-600); }
 
 /* ─── AVATARS ────────────────────────────────────────────── */
@@ -504,10 +513,10 @@ select.input {
 .avatar-xl { width: 64px; height: 64px; font-size: 22px; }
 
 .avatar-purple { background: var(--color-primary-light); color: var(--color-primary-dark); }
-.avatar-teal   { background: var(--color-success-light); color: #007A61; }
-.avatar-coral  { background: var(--color-danger-light);  color: #C44040; }
-.avatar-blue   { background: var(--color-info-light);    color: #1A5FAD; }
-.avatar-amber  { background: var(--color-warning-light); color: #9A6600; }
+.avatar-teal   { background: var(--color-success-light); color: var(--color-success-text); }
+.avatar-coral  { background: var(--color-danger-light);  color: var(--color-danger-text); }
+.avatar-blue   { background: var(--color-info-light);    color: var(--color-info-text); }
+.avatar-amber  { background: var(--color-warning-light); color: var(--color-warning-text); }
 
 /* ─── PROGRESS BARS ──────────────────────────────────────── */
 .progress-track {
@@ -543,7 +552,7 @@ select.input {
   position: absolute;
   top: 3px; left: 3px;
   width: 16px; height: 16px;
-  background: #fff;
+  background: var(--color-white);
   border-radius: 50%;
   transition: transform var(--transition-base);
   pointer-events: none;

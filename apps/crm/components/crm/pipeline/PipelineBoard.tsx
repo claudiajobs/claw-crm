@@ -1,8 +1,17 @@
 'use client'
 
 import { useOptimistic, useTransition, useEffect, useState, useCallback } from 'react'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 import PipelineColumn from './PipelineColumn'
-import type { LeadCardData } from './LeadCard'
+import LeadCard, { type LeadCardData } from './LeadCard'
 import { updateLeadStatus } from '@/lib/actions/leads'
 import { createClient } from '@/lib/supabase/client'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
@@ -35,6 +44,11 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
   const [, startTransition] = useTransition()
   const [liveLeads, setLiveLeads] = useState(initialLeads)
   const [isLive, setIsLive] = useState(false)
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  )
 
   // Sync server-rendered leads on navigation
   useEffect(() => {
@@ -123,10 +137,20 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
     })
   }
 
-  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(event.active.id as string)
   }
+
+  function handleDragEnd(event: DragEndEvent) {
+    setActiveId(null)
+    const { active, over } = event
+    if (!over) return
+    handleDrop(active.id as string, over.id as string)
+  }
+
+  const activeLead = activeId
+    ? optimisticLeads.find((l) => l.id === activeId) ?? null
+    : null
 
   return (
     <div>
@@ -143,18 +167,27 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
         )}
       </div>
 
-      <div className="kanban-board">
-        {COLUMNS.map(({ status, label }) => (
-          <PipelineColumn
-            key={status}
-            status={status}
-            label={label}
-            leads={optimisticLeads.filter((l) => l.status === status)}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-          />
-        ))}
-      </div>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="kanban-board">
+          {COLUMNS.map(({ status, label }) => (
+            <PipelineColumn
+              key={status}
+              status={status}
+              label={label}
+              leads={optimisticLeads.filter((l) => l.status === status)}
+              activeId={activeId}
+            />
+          ))}
+        </div>
+
+        <DragOverlay dropAnimation={null}>
+          {activeLead ? (
+            <div style={{ width: 220, opacity: 0.9 }}>
+              <LeadCard lead={activeLead} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   )
 }
