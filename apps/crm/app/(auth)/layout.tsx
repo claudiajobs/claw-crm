@@ -6,10 +6,10 @@ export default function AuthLayout({
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--color-bg-page)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      position: 'relative',
     }}>
       {children}
     </div>
