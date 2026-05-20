@@ -7,3 +7,7 @@ node_modules/
 .env.production
 .DS_Store
 Thumbs.db
+apps/crm/.next/
+apps/crm/tsconfig.tsbuildinfo
+apps/crm/next-env.d.ts
+apps/crm/sevende-design-system/
