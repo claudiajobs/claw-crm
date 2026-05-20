@@ -1,0 +1,3 @@
+{
+  "/api/sdr/contacts/enrich/[id]/route": "app/api/sdr/contacts/enrich/[id]/route.js"
+}

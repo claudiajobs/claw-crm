@@ -1,0 +1,53 @@
+{
+  "node": {
+    "00f2a7ea8d936f7da9eb1fb2487e45091881742622": {
+      "workers": {
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "logout",
+      "filename": "apps/crm/lib/actions/auth.ts"
+    },
+    "4048c1acf450dfa7341481b3d057b14cf9d2faa6e9": {
+      "workers": {
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "login",
+      "filename": "apps/crm/lib/actions/auth.ts"
+    },
+    "4062139d04f14786f34c49c2c196ded82719fe1403": {
+      "workers": {
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "signup",
+      "filename": "apps/crm/lib/actions/auth.ts"
+    },
+    "40a783dda33d17da9d8754ac49cae8f86fafc72bba": {
+      "workers": {
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "createLead",
+          "filename": "apps/crm/lib/actions/leads.ts"
+        }
+      },
+      "exportedName": "createLead",
+      "filename": "apps/crm/lib/actions/leads.ts"
+    }
+  },
+  "edge": {}
+}

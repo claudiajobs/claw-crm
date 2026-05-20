@@ -1,0 +1,546 @@
+{
+  "node": {
+    "00f2a7ea8d936f7da9eb1fb2487e45091881742622": {
+      "workers": {
+        "app/(auth)/login/page": {
+          "moduleId": 84069,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(auth)/pending/page": {
+          "moduleId": 93513,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(auth)/signup/page": {
+          "moduleId": 30410,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/novo/page": {
+          "moduleId": 55402,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/page": {
+          "moduleId": 13652,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/page": {
+          "moduleId": 22146,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/pipeline/page": {
+          "moduleId": 65510,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/api-keys/page": {
+          "moduleId": 25819,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/page": {
+          "moduleId": 11566,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/users/page": {
+          "moduleId": 19064,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/auth.ts",
+      "exportedName": "logout"
+    },
+    "4048c1acf450dfa7341481b3d057b14cf9d2faa6e9": {
+      "workers": {
+        "app/(auth)/login/page": {
+          "moduleId": 84069,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(auth)/pending/page": {
+          "moduleId": 93513,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(auth)/signup/page": {
+          "moduleId": 30410,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/novo/page": {
+          "moduleId": 55402,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/page": {
+          "moduleId": 13652,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/page": {
+          "moduleId": 22146,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/pipeline/page": {
+          "moduleId": 65510,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/api-keys/page": {
+          "moduleId": 25819,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/page": {
+          "moduleId": 11566,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/users/page": {
+          "moduleId": 19064,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/auth.ts",
+      "exportedName": "login"
+    },
+    "4062139d04f14786f34c49c2c196ded82719fe1403": {
+      "workers": {
+        "app/(auth)/login/page": {
+          "moduleId": 84069,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(auth)/pending/page": {
+          "moduleId": 93513,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(auth)/signup/page": {
+          "moduleId": 30410,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/novo/page": {
+          "moduleId": 55402,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/contacts/page": {
+          "moduleId": 13652,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/leads/page": {
+          "moduleId": 22146,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/pipeline/page": {
+          "moduleId": 65510,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/api-keys/page": {
+          "moduleId": 25819,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/page": {
+          "moduleId": 11566,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/settings/users/page": {
+          "moduleId": 19064,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        },
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/auth.ts",
+      "exportedName": "signup"
+    },
+    "403cdaad393ab2e08b4f88db5d63173717e3dc0870": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "triggerEnrichment",
+          "filename": "apps/crm/lib/actions/enrichment.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/enrichment.ts",
+      "exportedName": "triggerEnrichment"
+    },
+    "6067a02d574607d00e5c305aa4d939cb1dc901d6d8": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "updateActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "updateActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/activities.ts",
+      "exportedName": "updateActivity"
+    },
+    "408f40ea7868cae0777b0f36c7573e8ba12890134c": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "deleteActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "deleteActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/activities.ts",
+      "exportedName": "deleteActivity"
+    },
+    "402c0b57676d020767ca1e63d00f34bfbeb7ed089e": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "logActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "logActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/activities.ts",
+      "exportedName": "logActivity"
+    },
+    "4068676145271f89af3ddec3cbe8586dd0dbd745c5": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "createTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "createTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "createTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/tasks.ts",
+      "exportedName": "createTask"
+    },
+    "408f4cc98ce801c7b50afd942533a0dece792a8f54": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "createQuickTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "createQuickTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "createQuickTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/tasks.ts",
+      "exportedName": "createQuickTask"
+    },
+    "60abf1cb12e0c5065cc511605a43224dfe35156a42": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "completeTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "completeTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "completeTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/tasks.ts",
+      "exportedName": "completeTask"
+    },
+    "407ed6a494211cfd8db8d4db3c691015806558f976": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "deleteTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/leads/[id]/page": {
+          "moduleId": 74281,
+          "async": false,
+          "exportedName": "deleteTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        },
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "deleteTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/tasks.ts",
+      "exportedName": "deleteTask"
+    },
+    "4031002424b8cf11ccd667e641fa4b961abfb3abf0": {
+      "workers": {
+        "app/(dashboard)/contacts/novo/page": {
+          "moduleId": 55402,
+          "async": false,
+          "exportedName": "createContact",
+          "filename": "apps/crm/lib/actions/contacts.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/contacts.ts",
+      "exportedName": "createContact"
+    },
+    "40a783dda33d17da9d8754ac49cae8f86fafc72bba": {
+      "workers": {
+        "app/(dashboard)/leads/new/page": {
+          "moduleId": 66007,
+          "async": false,
+          "exportedName": "createLead",
+          "filename": "apps/crm/lib/actions/leads.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/leads.ts",
+      "exportedName": "createLead"
+    },
+    "609415d6ae464954eddad3ec9a7c8f46f4baa0cc74": {
+      "workers": {
+        "app/(dashboard)/pipeline/page": {
+          "moduleId": 65510,
+          "async": false,
+          "exportedName": "updateLeadStatus",
+          "filename": "apps/crm/lib/actions/leads.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/leads.ts",
+      "exportedName": "updateLeadStatus"
+    },
+    "40bd7543ae104c9ae5b1c78d9bc341e4b96bba8cbf": {
+      "workers": {
+        "app/(dashboard)/settings/api-keys/page": {
+          "moduleId": 25819,
+          "async": false,
+          "exportedName": "revokeApiKey",
+          "filename": "apps/crm/lib/actions/api-keys.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/api-keys.ts",
+      "exportedName": "revokeApiKey"
+    },
+    "60b60a304146e991362d496bd23e6e8c9d3cf4e827": {
+      "workers": {
+        "app/(dashboard)/settings/api-keys/page": {
+          "moduleId": 25819,
+          "async": false,
+          "exportedName": "generateApiKey",
+          "filename": "apps/crm/lib/actions/api-keys.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/api-keys.ts",
+      "exportedName": "generateApiKey"
+    },
+    "60ef41a955e5bf6c0a3ac9125b44db04139da64439": {
+      "workers": {
+        "app/(dashboard)/settings/users/page": {
+          "moduleId": 19064,
+          "async": false,
+          "exportedName": "approveUser",
+          "filename": "apps/crm/lib/actions/users.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/users.ts",
+      "exportedName": "approveUser"
+    },
+    "4008efdef7eeeaf4750e4f3b95030509a721945165": {
+      "workers": {
+        "app/(dashboard)/settings/users/page": {
+          "moduleId": 19064,
+          "async": false,
+          "exportedName": "suspendUser",
+          "filename": "apps/crm/lib/actions/users.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/users.ts",
+      "exportedName": "suspendUser"
+    },
+    "403d104f0f4679596619edaf52d508d0afd4b5cca6": {
+      "workers": {
+        "app/(dashboard)/settings/users/page": {
+          "moduleId": 19064,
+          "async": false,
+          "exportedName": "reactivateUser",
+          "filename": "apps/crm/lib/actions/users.ts"
+        }
+      },
+      "filename": "apps/crm/lib/actions/users.ts",
+      "exportedName": "reactivateUser"
+    },
+    "40762fc7d3f6feb719932387842b55e3101066dc69": {
+      "workers": {
+        "app/(dashboard)/tasks/page": {
+          "moduleId": 50802,
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_0",
+          "filename": "apps/crm/app/(dashboard)/tasks/page.tsx"
+        }
+      },
+      "filename": "apps/crm/app/(dashboard)/tasks/page.tsx",
+      "exportedName": "$$RSC_SERVER_ACTION_0"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "aGjpL68AR6F8+PcZPs6RoWZO5fM8yymP0lhjwP5yG4w="
+}

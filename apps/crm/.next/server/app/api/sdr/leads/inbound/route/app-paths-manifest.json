@@ -1,0 +1,3 @@
+{
+  "/api/sdr/leads/inbound/route": "app/api/sdr/leads/inbound/route.js"
+}

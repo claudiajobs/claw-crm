@@ -1,0 +1,214 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/sdr/contacts/enrich/[id]",
+      "regex": "^/api/sdr/contacts/enrich/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/sdr/contacts/enrich/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/leads/[id]",
+      "regex": "^/api/sdr/leads/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/sdr/leads/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/leads/[id]/activities",
+      "regex": "^/api/sdr/leads/([^/]+?)/activities(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/sdr/leads/(?<nxtPid>[^/]+?)/activities(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/leads/[id]/status",
+      "regex": "^/api/sdr/leads/([^/]+?)/status(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/sdr/leads/(?<nxtPid>[^/]+?)/status(?:/)?$"
+    },
+    {
+      "page": "/contacts/[id]",
+      "regex": "^/contacts/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/contacts/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/leads/[id]",
+      "regex": "^/leads/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/leads/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/contacts",
+      "regex": "^/api/sdr/contacts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sdr/contacts(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/leads",
+      "regex": "^/api/sdr/leads(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sdr/leads(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/leads/claim",
+      "regex": "^/api/sdr/leads/claim(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sdr/leads/claim(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/leads/inbound",
+      "regex": "^/api/sdr/leads/inbound(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sdr/leads/inbound(?:/)?$"
+    },
+    {
+      "page": "/api/sdr/tasks",
+      "regex": "^/api/sdr/tasks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sdr/tasks(?:/)?$"
+    },
+    {
+      "page": "/contacts",
+      "regex": "^/contacts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contacts(?:/)?$"
+    },
+    {
+      "page": "/contacts/novo",
+      "regex": "^/contacts/novo(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contacts/novo(?:/)?$"
+    },
+    {
+      "page": "/leads",
+      "regex": "^/leads(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/leads(?:/)?$"
+    },
+    {
+      "page": "/leads/new",
+      "regex": "^/leads/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/leads/new(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/pending",
+      "regex": "^/pending(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pending(?:/)?$"
+    },
+    {
+      "page": "/pipeline",
+      "regex": "^/pipeline(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pipeline(?:/)?$"
+    },
+    {
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings(?:/)?$"
+    },
+    {
+      "page": "/settings/api-keys",
+      "regex": "^/settings/api\\-keys(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings/api\\-keys(?:/)?$"
+    },
+    {
+      "page": "/settings/users",
+      "regex": "^/settings/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings/users(?:/)?$"
+    },
+    {
+      "page": "/signup",
+      "regex": "^/signup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signup(?:/)?$"
+    },
+    {
+      "page": "/tasks",
+      "regex": "^/tasks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/tasks(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "node": {
+    "00f2a7ea8d936f7da9eb1fb2487e45091881742622": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "logout",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "logout",
+      "filename": "apps/crm/lib/actions/auth.ts"
+    },
+    "4048c1acf450dfa7341481b3d057b14cf9d2faa6e9": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "login",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "login",
+      "filename": "apps/crm/lib/actions/auth.ts"
+    },
+    "4062139d04f14786f34c49c2c196ded82719fe1403": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "signup",
+          "filename": "apps/crm/lib/actions/auth.ts"
+        }
+      },
+      "exportedName": "signup",
+      "filename": "apps/crm/lib/actions/auth.ts"
+    },
+    "403cdaad393ab2e08b4f88db5d63173717e3dc0870": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "triggerEnrichment",
+          "filename": "apps/crm/lib/actions/enrichment.ts"
+        }
+      },
+      "exportedName": "triggerEnrichment",
+      "filename": "apps/crm/lib/actions/enrichment.ts"
+    },
+    "6067a02d574607d00e5c305aa4d939cb1dc901d6d8": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "updateActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        }
+      },
+      "exportedName": "updateActivity",
+      "filename": "apps/crm/lib/actions/activities.ts"
+    },
+    "408f40ea7868cae0777b0f36c7573e8ba12890134c": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "deleteActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        }
+      },
+      "exportedName": "deleteActivity",
+      "filename": "apps/crm/lib/actions/activities.ts"
+    },
+    "402c0b57676d020767ca1e63d00f34bfbeb7ed089e": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "logActivity",
+          "filename": "apps/crm/lib/actions/activities.ts"
+        }
+      },
+      "exportedName": "logActivity",
+      "filename": "apps/crm/lib/actions/activities.ts"
+    },
+    "4068676145271f89af3ddec3cbe8586dd0dbd745c5": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "createTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "exportedName": "createTask",
+      "filename": "apps/crm/lib/actions/tasks.ts"
+    },
+    "408f4cc98ce801c7b50afd942533a0dece792a8f54": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "createQuickTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "exportedName": "createQuickTask",
+      "filename": "apps/crm/lib/actions/tasks.ts"
+    },
+    "60abf1cb12e0c5065cc511605a43224dfe35156a42": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "completeTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "exportedName": "completeTask",
+      "filename": "apps/crm/lib/actions/tasks.ts"
+    },
+    "407ed6a494211cfd8db8d4db3c691015806558f976": {
+      "workers": {
+        "app/(dashboard)/contacts/[id]/page": {
+          "moduleId": 95649,
+          "async": false,
+          "exportedName": "deleteTask",
+          "filename": "apps/crm/lib/actions/tasks.ts"
+        }
+      },
+      "exportedName": "deleteTask",
+      "filename": "apps/crm/lib/actions/tasks.ts"
+    }
+  },
+  "edge": {}
+}
