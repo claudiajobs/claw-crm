@@ -62,7 +62,7 @@ export default async function Sidebar() {
     .toUpperCase()
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar hidden md:flex">
       {/* Logo */}
       <div className="sb-logo">
         <div className="sb-mark">S</div>

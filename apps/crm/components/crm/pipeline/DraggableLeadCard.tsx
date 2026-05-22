@@ -6,9 +6,10 @@ import LeadCard, { type LeadCardData } from './LeadCard'
 interface DraggableLeadCardProps {
   lead: LeadCardData
   isDragOverlay: boolean
+  onStatusChange?: (leadId: string, newStatus: string) => void
 }
 
-export default function DraggableLeadCard({ lead, isDragOverlay }: DraggableLeadCardProps) {
+export default function DraggableLeadCard({ lead, isDragOverlay, onStatusChange }: DraggableLeadCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: lead.id,
   })
@@ -23,7 +24,7 @@ export default function DraggableLeadCard({ lead, isDragOverlay }: DraggableLead
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
     >
-      <LeadCard lead={lead} />
+      <LeadCard lead={lead} onStatusChange={onStatusChange} />
     </div>
   )
 }

@@ -744,3 +744,12 @@ select.input {
   background: var(--color-danger);
   border: 1.5px solid var(--color-bg-card);
 }
+
+/* ── Mobile: prevent iOS Safari zoom on input focus ── */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

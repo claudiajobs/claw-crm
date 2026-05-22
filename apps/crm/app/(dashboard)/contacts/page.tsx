@@ -131,7 +131,34 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
         </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table className="data-table">
+          {/* ── Mobile: card list (< sm) ── */}
+          <ul className="sm:hidden" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {page.map((contact) => {
+              const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ')
+              const channelDisplay = contact.whatsapp_number
+                ? `WhatsApp ${contact.whatsapp_number}`
+                : contact.instagram_handle
+                ? `IG ${contact.instagram_handle}`
+                : null
+
+              return (
+                <li key={contact.id} style={{ borderBottom: '0.5px solid var(--color-gray-100)', padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-gray-800)' }}>{fullName}</span>
+                    <span className={STATUS_BADGE[contact.status] ?? 'badge badge-sq badge-gray'}>
+                      {STATUS_LABEL[contact.status] ?? contact.status}
+                    </span>
+                  </div>
+                  {channelDisplay && (
+                    <span style={{ fontSize: 12, color: 'var(--color-gray-500)', marginTop: 4, display: 'block' }}>
+                      {channelDisplay}
+                    </span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+          <table className="data-table hidden sm:table">
             <thead>
               <tr>
                 <th>Nome</th>

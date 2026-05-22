@@ -138,7 +138,49 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
         </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table className="data-table">
+
+          {/* ── Mobile: card list (< sm) ── */}
+          <ul className="sm:hidden" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {page.map((lead) => {
+              const contact = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts
+              const contactName = contact
+                ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
+                : '—'
+              return (
+                <li key={lead.id} style={{ borderBottom: '0.5px solid var(--color-gray-100)' }}>
+                  <Link
+                    href={`/leads/${lead.id}`}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '14px 16px', textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-gray-800)', lineHeight: 1.4 }}>
+                        {lead.title}
+                      </span>
+                      <LeadScoreBadge score={lead.score ?? 0} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span className={STATUS_BADGE[lead.status] ?? 'badge badge-sq badge-gray'}>
+                        {STATUS_LABEL[lead.status] ?? lead.status}
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--color-gray-500)' }}>{contactName}</span>
+                      {lead.value != null && (
+                        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-gray-700)', marginLeft: 'auto' }}>
+                          {Number(lead.value).toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                            maximumFractionDigits: 0,
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* ── Desktop: table (sm+) ── */}
+          <table className="data-table hidden sm:table">
             <thead>
               <tr>
                 <th>Título</th>

@@ -158,13 +158,25 @@ export default async function LeadPage({ params }: LeadPageProps) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <Link href="/leads" style={{ fontSize: 12, color: 'var(--color-gray-400)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+      {/* Voltar — more prominent on mobile, breadcrumb style on desktop */}
+      <div style={{ marginBottom: 24 }}>
+        <Link
+          href="/leads"
+          className="md:hidden"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--color-primary)', fontWeight: 500, textDecoration: 'none', marginBottom: 8 }}
+        >
           <IconArrowLeft size={14} stroke={1.5} aria-hidden />
-          Leads
+          Voltar para Leads
         </Link>
-        <span style={{ color: 'var(--color-gray-200)' }}>/</span>
-        <h1 className="topbar-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.title}</h1>
+        <div className="hidden md:flex" style={{ alignItems: 'center', gap: 12 }}>
+          <Link href="/leads" style={{ fontSize: 12, color: 'var(--color-gray-400)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <IconArrowLeft size={14} stroke={1.5} aria-hidden />
+            Leads
+          </Link>
+          <span style={{ color: 'var(--color-gray-200)' }}>/</span>
+          <h1 className="topbar-title" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.title}</h1>
+        </div>
+        <h1 className="topbar-title md:hidden" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.title}</h1>
       </div>
 
       <LeadDetail

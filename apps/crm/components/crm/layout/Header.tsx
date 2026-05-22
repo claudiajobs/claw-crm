@@ -34,7 +34,7 @@ export default async function Header() {
     .toUpperCase()
 
   return (
-    <header className="topbar">
+    <header className="topbar pl-14 pr-4 md:px-6">
       {/* Page title slot */}
       <div id="page-title" />
 
@@ -52,7 +52,7 @@ export default async function Header() {
         <form action={logout}>
           <button
             type="submit"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm px-4 py-2.5 md:py-1.5 min-h-[44px] md:min-h-0"
             aria-label="Sair"
           >
             <IconLogout size={14} stroke={1.5} aria-hidden />

@@ -19,6 +19,7 @@ interface PipelineColumnProps {
   label: string
   leads: LeadCardData[]
   activeId: string | null
+  onStatusChange: (leadId: string, newStatus: string) => void
 }
 
 export default function PipelineColumn({
@@ -26,6 +27,7 @@ export default function PipelineColumn({
   label,
   leads,
   activeId,
+  onStatusChange,
 }: PipelineColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   const colors = STATUS_COLORS[status] ?? STATUS_COLORS.novo
@@ -54,6 +56,7 @@ export default function PipelineColumn({
             key={lead.id}
             lead={lead}
             isDragOverlay={lead.id === activeId}
+            onStatusChange={onStatusChange}
           />
         ))}
         {leads.length === 0 && (
