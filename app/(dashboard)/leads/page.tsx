@@ -105,7 +105,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Link
           href="/leads"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors
+          className={`rounded-full px-4 py-2 text-xs font-medium transition-colors min-h-[44px] flex items-center
             ${!activeStatus
               ? 'bg-gray-900 text-white'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
@@ -116,7 +116,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
           <Link
             key={s}
             href={buildUrl({ status: s })}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors
+            className={`rounded-full px-4 py-2 text-xs font-medium transition-colors min-h-[44px] flex items-center
               ${activeStatus === s
                 ? 'bg-gray-900 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
@@ -133,7 +133,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
         </div>
       )}
 
-      {/* Tabela */}
+      {/* Lista / Tabela */}
       {page.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
           <p className="text-gray-400 text-sm">Nenhum lead encontrado.</p>
@@ -146,7 +146,52 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+
+          {/* ── Mobile: card list (< sm) ── */}
+          <ul className="divide-y divide-gray-100 sm:hidden">
+            {page.map((lead) => {
+              const contact = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts
+              const contactName = contact
+                ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
+                : '—'
+              return (
+                <li key={lead.id}>
+                  <Link
+                    href={`/leads/${lead.id}`}
+                    className="flex flex-col gap-1.5 px-4 py-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-sm font-medium text-gray-900 leading-snug">
+                        {lead.title}
+                      </span>
+                      <LeadScoreBadge score={lead.score ?? 0} />
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                          ${STATUS_COLOR[lead.status] ?? 'bg-gray-100 text-gray-500'}`}
+                      >
+                        {STATUS_LABEL[lead.status] ?? lead.status}
+                      </span>
+                      <span className="text-xs text-gray-500">{contactName}</span>
+                      {lead.value != null && (
+                        <span className="text-xs font-medium text-gray-700 ml-auto">
+                          {Number(lead.value).toLocaleString('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                            maximumFractionDigits: 0,
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* ── Desktop: table (sm+) ── */}
+          <table className="hidden sm:table w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -168,13 +213,10 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {page.map((lead) => {
-                const contact = Array.isArray(lead.contacts)
-                  ? lead.contacts[0]
-                  : lead.contacts
+                const contact = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts
                 const contactName = contact
                   ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
                   : '—'
-
                 return (
                   <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-gray-900">
@@ -210,11 +252,11 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
 
           {/* Paginação cursor-based */}
           {(cursor || hasMore) && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-gray-100">
               {cursor ? (
                 <Link
                   href={buildUrl({ status: activeStatus })}
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  className="text-sm text-gray-600 hover:text-gray-900 min-h-[44px] flex items-center"
                 >
                   ← Primeira página
                 </Link>
@@ -224,7 +266,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               {nextCursor && (
                 <Link
                   href={buildUrl({ status: activeStatus, cursor: nextCursor })}
-                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  className="text-sm text-red-600 hover:text-red-700 font-medium min-h-[44px] flex items-center"
                 >
                   Próxima página →
                 </Link>

@@ -6,19 +6,17 @@ import type { LeadCardData } from './LeadCard'
 import { updateLeadStatus } from '@/lib/actions/leads'
 
 const COLUMNS: Array<{ status: string; label: string }> = [
-  { status: 'novo', label: 'Novo' },
-  { status: 'contatado', label: 'Contatado' },
+  { status: 'novo',        label: 'Novo' },
+  { status: 'contatado',   label: 'Contatado' },
   { status: 'qualificado', label: 'Qualificado' },
-  { status: 'proposta', label: 'Proposta' },
-  { status: 'negociacao', label: 'Negociação' },
-  { status: 'ganho', label: 'Ganho' },
-  { status: 'perdido', label: 'Perdido' },
+  { status: 'proposta',    label: 'Proposta' },
+  { status: 'negociacao',  label: 'Negociação' },
+  { status: 'ganho',       label: 'Ganho' },
+  { status: 'perdido',     label: 'Perdido' },
 ]
 
-type LeadWithStatus = LeadCardData & { status: string }
-
 interface PipelineBoardProps {
-  leads: LeadWithStatus[]
+  leads: LeadCardData[]
 }
 
 export default function PipelineBoard({ leads }: PipelineBoardProps) {
@@ -30,7 +28,7 @@ export default function PipelineBoard({ leads }: PipelineBoardProps) {
       current.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
   )
 
-  function handleDrop(leadId: string, targetStatus: string) {
+  function handleStatusChange(leadId: string, targetStatus: string) {
     const lead = optimisticLeads.find((l) => l.id === leadId)
     if (!lead || lead.status === targetStatus) return
 
@@ -63,8 +61,9 @@ export default function PipelineBoard({ leads }: PipelineBoardProps) {
           status={status}
           label={label}
           leads={optimisticLeads.filter((l) => l.status === status)}
-          onDrop={handleDrop}
+          onDrop={handleStatusChange}
           onDragOver={handleDragOver}
+          onStatusChange={handleStatusChange}
         />
       ))}
     </div>

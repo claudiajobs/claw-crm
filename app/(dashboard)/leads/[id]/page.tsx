@@ -114,12 +114,23 @@ export default async function LeadPage({ params }: LeadPageProps) {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/leads" className="text-sm text-gray-500 hover:text-gray-700">
-          ← Leads
+      {/* Voltar — more prominent on mobile, breadcrumb style on desktop */}
+      <div className="mb-6">
+        <Link
+          href="/leads"
+          className="inline-flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700
+                     font-medium mb-2 md:hidden"
+        >
+          ← Voltar para Leads
         </Link>
-        <span className="text-gray-300">/</span>
-        <h1 className="text-xl font-semibold text-gray-900 truncate">{lead.title}</h1>
+        <div className="hidden md:flex items-center gap-3">
+          <Link href="/leads" className="text-sm text-gray-500 hover:text-gray-700">
+            ← Leads
+          </Link>
+          <span className="text-gray-300">/</span>
+          <h1 className="text-xl font-semibold text-gray-900 truncate">{lead.title}</h1>
+        </div>
+        <h1 className="text-xl font-semibold text-gray-900 truncate md:hidden">{lead.title}</h1>
       </div>
 
       <LeadDetail

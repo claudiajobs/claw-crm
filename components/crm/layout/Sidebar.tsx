@@ -17,7 +17,7 @@ const navItems: NavItem[] = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-60 min-h-screen bg-gray-900 flex flex-col">
+    <aside className="hidden md:flex w-60 min-h-screen bg-gray-900 flex-col">
       {/* Marca */}
       <div className="px-6 py-5 border-b border-gray-700">
         <span className="text-white font-bold text-lg tracking-tight">

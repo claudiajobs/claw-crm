@@ -6,6 +6,7 @@ interface PipelineColumnProps {
   leads: LeadCardData[]
   onDrop: (leadId: string, targetStatus: string) => void
   onDragOver: (e: React.DragEvent<HTMLDivElement>) => void
+  onStatusChange: (leadId: string, newStatus: string) => void
 }
 
 export default function PipelineColumn({
@@ -14,6 +15,7 @@ export default function PipelineColumn({
   leads,
   onDrop,
   onDragOver,
+  onStatusChange,
 }: PipelineColumnProps) {
   return (
     <div
@@ -48,7 +50,7 @@ export default function PipelineColumn({
               e.dataTransfer.effectAllowed = 'move'
             }}
           >
-            <LeadCard lead={lead} />
+            <LeadCard lead={lead} onStatusChange={onStatusChange} />
           </div>
         ))}
         {leads.length === 0 && (

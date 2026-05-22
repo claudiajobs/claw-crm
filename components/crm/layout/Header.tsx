@@ -19,7 +19,7 @@ export default async function Header() {
   const roleLabel = profile?.role === 'admin' ? 'Admin' : 'Representante'
 
   return (
-    <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between px-6">
+    <header className="h-14 border-b border-gray-200 bg-white flex items-center justify-between pl-14 pr-4 md:px-6">
       {/* Breadcrumb / título — preenchido por cada página via slot */}
       <div id="page-title" />
 
@@ -36,7 +36,8 @@ export default async function Header() {
           <button
             type="submit"
             className="text-sm text-gray-500 hover:text-gray-900 transition-colors
-                       border border-gray-200 rounded-lg px-3 py-1.5 hover:border-gray-300"
+                       border border-gray-200 rounded-lg px-4 py-2.5 md:py-1.5 hover:border-gray-300
+                       min-h-[44px] md:min-h-0"
           >
             Sair
           </button>

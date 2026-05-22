@@ -135,9 +135,9 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore }:
         ) : (
           <ul className="space-y-2">
             {matchedRules.map((rule) => (
-              <li key={rule.id} className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">{rule.description}</span>
-                <span className="text-xs font-semibold text-green-700 bg-green-50 rounded-full px-2 py-0.5">
+              <li key={rule.id} className="flex items-center gap-3 justify-between min-w-0">
+                <span className="text-sm text-gray-700 min-w-0 truncate">{rule.description}</span>
+                <span className="text-xs font-semibold text-green-700 bg-green-50 rounded-full px-2 py-0.5 flex-shrink-0">
                   +{rule.points}
                 </span>
               </li>

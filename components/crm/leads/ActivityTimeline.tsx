@@ -61,14 +61,16 @@ export default function ActivityTimeline({ activities }: ActivityTimelineProps) 
               {TYPE_ICON[act.type] ?? '📋'}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-semibold text-gray-700">
-                  {TYPE_LABEL[act.type] ?? act.type}
-                </span>
-                {act.subject && (
-                  <span className="text-xs text-gray-500">— {act.subject}</span>
-                )}
-                <span className="ml-auto text-xs text-gray-400">
+              <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-700">
+                    {TYPE_LABEL[act.type] ?? act.type}
+                  </span>
+                  {act.subject && (
+                    <span className="text-xs text-gray-500 truncate">— {act.subject}</span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-400 sm:ml-auto">
                   {new Date(act.created_at).toLocaleDateString('pt-BR', {
                     day: '2-digit',
                     month: '2-digit',

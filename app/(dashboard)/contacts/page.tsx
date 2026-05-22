@@ -93,7 +93,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
         </div>
       )}
 
-      {/* Tabela */}
+      {/* Lista / Tabela */}
       {page.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 px-6 py-16 text-center">
           <p className="text-gray-400 text-sm">Nenhum contato encontrado.</p>
@@ -106,7 +106,50 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
+
+          {/* ── Mobile: card list (< sm) ── */}
+          <ul className="divide-y divide-gray-100 sm:hidden">
+            {page.map((contact) => {
+              const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ')
+              const channelDisplay = contact.whatsapp_number
+                ? `💬 ${contact.whatsapp_number}`
+                : contact.instagram_handle
+                ? `📸 ${contact.instagram_handle}`
+                : null
+
+              return (
+                <li key={contact.id} className="flex flex-col gap-1.5 px-4 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-sm font-medium text-gray-900">{fullName}</span>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium flex-shrink-0
+                        ${STATUS_COLOR[contact.status] ?? 'bg-gray-100 text-gray-500'}`}
+                    >
+                      {STATUS_LABEL[contact.status] ?? contact.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500">
+                    {channelDisplay && <span>{channelDisplay}</span>}
+                    {contact.type && (
+                      <span className="text-gray-400">·</span>
+                    )}
+                    {contact.type && (
+                      <span>{TYPE_LABEL[contact.type] ?? contact.type}</span>
+                    )}
+                    {contact.territory && (
+                      <>
+                        <span className="text-gray-400">·</span>
+                        <span>{contact.territory}</span>
+                      </>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* ── Desktop: table (sm+) ── */}
+          <table className="hidden sm:table w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -128,10 +171,7 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
             </thead>
             <tbody className="divide-y divide-gray-50">
               {page.map((contact) => {
-                const fullName = [contact.first_name, contact.last_name]
-                  .filter(Boolean)
-                  .join(' ')
-
+                const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ')
                 const channelDisplay = contact.whatsapp_number
                   ? `💬 ${contact.whatsapp_number}`
                   : contact.instagram_handle
@@ -164,22 +204,21 @@ export default async function ContactsPage({ searchParams }: ContactsPageProps) 
 
           {/* Paginação cursor-based */}
           {(cursor || hasMore) && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-t border-gray-100">
               {cursor ? (
                 <Link
                   href="/contacts"
-                  className="text-sm text-gray-600 hover:text-gray-900"
+                  className="text-sm text-gray-600 hover:text-gray-900 min-h-[44px] flex items-center"
                 >
                   ← Primeira página
                 </Link>
               ) : (
                 <span />
               )}
-
               {nextCursor && (
                 <Link
                   href={`/contacts?cursor=${encodeURIComponent(nextCursor)}`}
-                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  className="text-sm text-red-600 hover:text-red-700 font-medium min-h-[44px] flex items-center"
                 >
                   Próxima página →
                 </Link>

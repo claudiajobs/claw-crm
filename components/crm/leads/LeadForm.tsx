@@ -151,8 +151,8 @@ export default function LeadForm({ erro, contacts }: LeadFormProps) {
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white
-                     hover:bg-red-700 active:bg-red-800
+          className="rounded-lg bg-red-600 px-5 py-3 md:py-2.5 text-sm font-semibold text-white
+                     hover:bg-red-700 active:bg-red-800 min-h-[44px]
                      focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
                      transition-colors"
         >
@@ -160,8 +160,8 @@ export default function LeadForm({ erro, contacts }: LeadFormProps) {
         </button>
         <a
           href="/leads"
-          className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium
-                     text-gray-700 hover:bg-gray-50 transition-colors"
+          className="rounded-lg border border-gray-300 px-5 py-3 md:py-2.5 text-sm font-medium
+                     text-gray-700 hover:bg-gray-50 transition-colors min-h-[44px] flex items-center"
         >
           Cancelar
         </a>
