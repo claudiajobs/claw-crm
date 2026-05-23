@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import LeadScoreBadge from '@/components/crm/leads/LeadScoreBadge'
 import { IconBrandWhatsapp, IconBrandInstagram, IconPhone } from '@tabler/icons-react'
@@ -8,6 +10,16 @@ const CHANNEL_ICON: Record<string, React.ReactNode> = {
   telefone: <IconPhone size={14} stroke={1.5} aria-hidden style={{ color: 'var(--color-gray-400)' }} />,
 }
 
+const ALL_STATUSES = [
+  { value: 'novo',        label: 'Novo' },
+  { value: 'contatado',   label: 'Contatado' },
+  { value: 'qualificado', label: 'Qualificado' },
+  { value: 'proposta',    label: 'Proposta' },
+  { value: 'negociacao',  label: 'Negociação' },
+  { value: 'ganho',       label: 'Ganho' },
+  { value: 'perdido',     label: 'Perdido' },
+]
+
 export interface LeadCardData {
   id: string
   title: string
@@ -15,13 +27,15 @@ export interface LeadCardData {
   value: number | null
   contact_name: string
   preferred_channel: string | null
+  status: string
 }
 
 interface LeadCardProps {
   lead: LeadCardData
+  onStatusChange?: (leadId: string, newStatus: string) => void
 }
 
-export default function LeadCard({ lead }: LeadCardProps) {
+export default function LeadCard({ lead, onStatusChange }: LeadCardProps) {
   return (
     <div className="deal-card">
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
@@ -50,6 +64,19 @@ export default function LeadCard({ lead }: LeadCardProps) {
             maximumFractionDigits: 0,
           })}
         </p>
+      )}
+
+      {/* Mobile: status dropdown */}
+      {onStatusChange && (
+        <select
+          className="mt-2 w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 md:hidden"
+          value={lead.status}
+          onChange={(e) => onStatusChange(lead.id, e.target.value)}
+        >
+          {ALL_STATUSES.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
       )}
     </div>
   )

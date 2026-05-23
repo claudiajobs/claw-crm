@@ -17,19 +17,17 @@ import { createClient } from '@/lib/supabase/client'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 const COLUMNS: Array<{ status: string; label: string }> = [
-  { status: 'novo', label: 'Novo' },
-  { status: 'contatado', label: 'Contatado' },
+  { status: 'novo',        label: 'Novo' },
+  { status: 'contatado',   label: 'Contatado' },
   { status: 'qualificado', label: 'Qualificado' },
-  { status: 'proposta', label: 'Proposta' },
-  { status: 'negociacao', label: 'Negociação' },
-  { status: 'ganho', label: 'Ganho' },
-  { status: 'perdido', label: 'Perdido' },
+  { status: 'proposta',    label: 'Proposta' },
+  { status: 'negociacao',  label: 'Negociação' },
+  { status: 'ganho',       label: 'Ganho' },
+  { status: 'perdido',     label: 'Perdido' },
 ]
 
-type LeadWithStatus = LeadCardData & { status: string }
-
 interface PipelineBoardProps {
-  leads: LeadWithStatus[]
+  leads: LeadCardData[]
 }
 
 interface LeadPayload {
@@ -117,7 +115,7 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
       current.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
   )
 
-  function handleDrop(leadId: string, targetStatus: string) {
+  function handleStatusChange(leadId: string, targetStatus: string) {
     const lead = optimisticLeads.find((l) => l.id === leadId)
     if (!lead || lead.status === targetStatus) return
 
@@ -145,7 +143,7 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
     setActiveId(null)
     const { active, over } = event
     if (!over) return
-    handleDrop(active.id as string, over.id as string)
+    handleStatusChange(active.id as string, over.id as string)
   }
 
   const activeLead = activeId
@@ -176,6 +174,7 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
               label={label}
               leads={optimisticLeads.filter((l) => l.status === status)}
               activeId={activeId}
+              onStatusChange={handleStatusChange}
             />
           ))}
         </div>

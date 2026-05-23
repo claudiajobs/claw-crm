@@ -128,9 +128,9 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore, c
         ) : (
           <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, listStyle: 'none' }}>
             {matchedRules.map((rule) => (
-              <li key={rule.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 13, color: 'var(--color-gray-600)' }}>{rule.description}</span>
-                <span className="badge badge-teal">+{rule.points}</span>
+              <li key={rule.id} className="flex items-center gap-3 justify-between min-w-0" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="min-w-0 truncate" style={{ fontSize: 13, color: 'var(--color-gray-600)' }}>{rule.description}</span>
+                <span className="badge badge-teal flex-shrink-0">+{rule.points}</span>
               </li>
             ))}
           </ul>

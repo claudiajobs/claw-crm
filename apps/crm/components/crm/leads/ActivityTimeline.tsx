@@ -226,14 +226,16 @@ function ActivityItem({
         {TYPE_ICON[act.type] ?? <IconClipboard size={16} stroke={1.5} aria-hidden />}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-gray-800)' }}>
-            {TYPE_LABEL[act.type] ?? act.type}
-          </span>
-          {act.subject && (
-            <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>— {act.subject}</span>
-          )}
-          <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-gray-400)' }}>
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+          <div className="flex items-center gap-2">
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-gray-800)' }}>
+              {TYPE_LABEL[act.type] ?? act.type}
+            </span>
+            {act.subject && (
+              <span className="truncate" style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>— {act.subject}</span>
+            )}
+          </div>
+          <span className="sm:ml-auto" style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
             {new Date(act.created_at).toLocaleDateString('pt-BR', {
               day: '2-digit',
               month: '2-digit',

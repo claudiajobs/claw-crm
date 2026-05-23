@@ -187,10 +187,10 @@ export default function ContactForm({ erro }: ContactFormProps) {
       )}
 
       <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
-        <button type="submit" className="btn btn-primary">
+        <button type="submit" className="btn btn-primary py-3 md:py-2.5 min-h-[44px]">
           Salvar contato
         </button>
-        <a href="/contacts" className="btn btn-ghost">
+        <a href="/contacts" className="btn btn-ghost py-3 md:py-2.5 min-h-[44px] flex items-center">
           Cancelar
         </a>
       </div>
