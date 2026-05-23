@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import UserList from '@/components/crm/settings/UserList'
 
 export default async function UsersPage() {
@@ -20,7 +21,9 @@ export default async function UsersPage() {
     redirect('/pipeline')
   }
 
-  const { data: usersRows } = await supabase
+  // Use service client to bypass RLS — admin needs to see ALL users including pending
+  const serviceClient = createServiceClient()
+  const { data: usersRows } = await serviceClient
     .from('users')
     .select('id, name, email, role, status, created_at')
     .order('created_at', { ascending: false })
