@@ -79,6 +79,7 @@ export async function signup(formData: FormData) {
       id: authData.user.id,
       email,
       name,
+      role: 'vendedor',
       status: 'pending',
     })
 
