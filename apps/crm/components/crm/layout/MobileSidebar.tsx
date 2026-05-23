@@ -8,18 +8,21 @@ import {
   IconUsers,
   IconCheckbox,
   IconSettings,
+  IconKey,
 } from '@tabler/icons-react'
 
-const navItems = [
+const baseNavItems = [
   { href: '/pipeline', label: 'Pipeline', icon: <IconTimeline size={17} stroke={1.5} aria-hidden /> },
   { href: '/leads', label: 'Leads', icon: <IconBriefcase size={17} stroke={1.5} aria-hidden /> },
   { href: '/contacts', label: 'Contatos', icon: <IconUsers size={17} stroke={1.5} aria-hidden /> },
   { href: '/tasks', label: 'Tarefas', icon: <IconCheckbox size={17} stroke={1.5} aria-hidden /> },
   { href: '/settings', label: 'Configurações', icon: <IconSettings size={17} stroke={1.5} aria-hidden /> },
+  { href: '/settings/users', label: 'Usuários', icon: <IconKey size={17} stroke={1.5} aria-hidden />, adminOnly: true },
 ]
 
-export default function MobileSidebar() {
+export default function MobileSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
+  const navItems = baseNavItems.filter(item => !('adminOnly' in item) || !item.adminOnly || isAdmin)
 
   return (
     <>
