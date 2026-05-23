@@ -141,10 +141,13 @@ input, select, textarea { font-family: var(--font-ui); }
   height: 100vh;
   background: var(--color-bg-sidebar);
   border-right: var(--border-default);
-  display: flex;
+  display: none;
   flex-direction: column;
   padding: 18px 10px;
   overflow-y: auto;
+}
+@media (min-width: 768px) {
+  .sidebar { display: flex; }
 }
 
 .main-area {
