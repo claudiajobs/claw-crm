@@ -11,7 +11,9 @@ export default async function UsersPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  // Use service client for profile check too — avoids RLS issues with session cookies
+  const serviceClient = createServiceClient()
+  const { data: profile } = await serviceClient
     .from('users')
     .select('role')
     .eq('id', user.id)
@@ -21,9 +23,7 @@ export default async function UsersPage() {
     redirect('/pipeline')
   }
 
-  // Use service client to bypass RLS — admin needs to see ALL users including pending
-  const serviceClient = createServiceClient()
-  const { data: usersRows } = await serviceClient
+  const { data: usersRows, error: usersError } = await serviceClient
     .from('users')
     .select('id, name, email, role, status, created_at')
     .order('created_at', { ascending: false })
