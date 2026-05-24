@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 
 type UserRole = 'admin' | 'editor' | 'vendedor' | 'sdr'
 
@@ -13,7 +14,9 @@ export async function approveUser(userId: string, role: UserRole) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { error } = await supabase
+  // Use service client to bypass RLS for admin user management
+  const serviceClient = createServiceClient()
+  const { error } = await serviceClient
     .from('users')
     .update({
       status: 'active',
@@ -36,7 +39,8 @@ export async function suspendUser(userId: string) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { error } = await supabase
+  const serviceClient = createServiceClient()
+  const { error } = await serviceClient
     .from('users')
     .update({ status: 'suspended' })
     .eq('id', userId)
@@ -54,7 +58,8 @@ export async function reactivateUser(userId: string) {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { error } = await supabase
+  const serviceClient = createServiceClient()
+  const { error } = await serviceClient
     .from('users')
     .update({ status: 'active' })
     .eq('id', userId)
