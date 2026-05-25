@@ -58,12 +58,8 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
     .select('slug, name')
     .order('sort_order')
 
-  // Load products with variants
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, name, slug, variants:product_variants(id, sku, name, unit, active)')
-    .eq('active', true)
-    .order('name')
+  // Products are now searched on-demand via server action (searchVariants)
+  // No need to preload them all
 
   return (
     <div>
@@ -92,10 +88,7 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
         prefillContact={prefillContact}
         prefillLead={prefillLead}
         tiers={tiers ?? []}
-        products={(products ?? []).map((p) => ({
-          ...p,
-          variants: Array.isArray(p.variants) ? p.variants.filter((v) => v.active) : [],
-        }))}
+        products={[]}
       />
     </div>
   )
