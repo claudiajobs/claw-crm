@@ -12,7 +12,7 @@ interface PrefetchedContact {
   id: string
   first_name: string
   last_name: string
-  email: string
+  phone: string
   membership_tier: string | null
 }
 
@@ -112,7 +112,7 @@ export default function PedidoForm({
             full.includes(q) ||
             c.first_name.toLowerCase().includes(q) ||
             c.last_name.toLowerCase().includes(q) ||
-            c.email.toLowerCase().includes(q)
+            c.phone.toLowerCase().includes(q)
           )
         })
       : localContacts
@@ -125,7 +125,7 @@ export default function PedidoForm({
     let count = 0
     for (const c of localContacts) {
       const full = `${c.first_name} ${c.last_name}`.toLowerCase()
-      if (full.includes(q) || c.first_name.toLowerCase().includes(q) || c.last_name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)) {
+      if (full.includes(q) || c.first_name.toLowerCase().includes(q) || c.last_name.toLowerCase().includes(q) || c.phone.toLowerCase().includes(q)) {
         count++
         if (count > MAX_DROPDOWN_ITEMS) return true
       }
@@ -382,8 +382,8 @@ export default function PedidoForm({
                             <span style={{ fontWeight: 500, color: 'var(--color-gray-800)', flex: 1 }}>
                               {[c.first_name, c.last_name].filter(Boolean).join(' ')}
                             </span>
-                            {c.email && (
-                              <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>{c.email}</span>
+                            {c.phone && (
+                              <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>{c.phone}</span>
                             )}
                             {c.membership_tier && (
                               <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>({c.membership_tier})</span>
@@ -472,7 +472,7 @@ export default function PedidoForm({
                 id: c.id,
                 first_name: c.name.split(' ')[0] ?? '',
                 last_name: c.name.split(' ').slice(1).join(' '),
-                email: '',
+                phone: '',
                 membership_tier: c.tier,
               },
             ])

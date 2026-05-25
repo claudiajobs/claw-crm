@@ -63,7 +63,7 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
       .order('sort_order'),
     svc
       .from('contacts')
-      .select('id, first_name, last_name, email, membership_tier')
+      .select('id, first_name, last_name, whatsapp_number, instagram_handle, membership_tier')
       .order('first_name'),
     svc
       .from('product_variants')
@@ -84,7 +84,7 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
     id: c.id as string,
     first_name: (c.first_name ?? '') as string,
     last_name: (c.last_name ?? '') as string,
-    email: (c.email ?? '') as string,
+    phone: (c.whatsapp_number ?? c.instagram_handle ?? '') as string,
     membership_tier: c.membership_tier as string | null,
   }))
 
