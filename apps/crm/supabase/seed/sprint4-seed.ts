@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
-const seedDataDir = resolve(__dirname, '../../../../tasks/seed-data')
+const seedDataDir = resolve('/home/leo/developer/claw/tasks/seed-data')
 
 const tiers = JSON.parse(
   readFileSync(resolve(seedDataDir, 'membership-tiers.json'), 'utf-8')
