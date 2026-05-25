@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { IconArrowLeft } from '@tabler/icons-react'
 import PedidoForm from '@/components/crm/pedidos/PedidoForm'
 
@@ -14,6 +15,8 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
   if (!user) redirect('/login')
 
   const { contact_id, lead_id } = await searchParams
+
+  const svc = createServiceClient()
 
   // Pre-fill contact info if provided
   let prefillContact: { id: string; name: string } | null = null
@@ -52,14 +55,59 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
     }
   }
 
-  // Load membership tiers for pricing
-  const { data: tiers } = await supabase
-    .from('membership_tiers')
-    .select('slug, name')
-    .order('sort_order')
+  // Prefetch all data in parallel for instant client-side filtering
+  const [tiersRes, contactsRes, variantsRes, pricingRes] = await Promise.all([
+    supabase
+      .from('membership_tiers')
+      .select('slug, name')
+      .order('sort_order'),
+    svc
+      .from('contacts')
+      .select('id, first_name, last_name, email, membership_tier')
+      .order('first_name'),
+    svc
+      .from('product_variants')
+      .select('id, name, sku, unit, product_id, products(name)')
+      .eq('active', true)
+      .order('name'),
+    svc
+      .from('product_pricing')
+      .select('variant_id, tier_slug, price, valid_from, valid_until')
+      .lte('valid_from', new Date().toISOString())
+      .or(`valid_until.is.null,valid_until.gt.${new Date().toISOString()}`)
+      .order('valid_from', { ascending: false }),
+  ])
 
-  // Products are now searched on-demand via server action (searchVariants)
-  // No need to preload them all
+  const tiers = tiersRes.data ?? []
+
+  const allContacts = (contactsRes.data ?? []).map((c) => ({
+    id: c.id as string,
+    first_name: (c.first_name ?? '') as string,
+    last_name: (c.last_name ?? '') as string,
+    email: (c.email ?? '') as string,
+    membership_tier: c.membership_tier as string | null,
+  }))
+
+  const allVariants = (variantsRes.data ?? []).map((v) => {
+    const product = Array.isArray(v.products) ? v.products[0] : v.products
+    const productName = (product as { name: string } | null)?.name ?? ''
+    return {
+      id: v.id as string,
+      sku: v.sku as string,
+      name: v.name as string,
+      unit: v.unit as string,
+      productName,
+    }
+  })
+
+  // Build price map: { `${variant_id}:${tier_slug}` → price } (latest price per combo)
+  const priceMap: Record<string, number> = {}
+  for (const row of pricingRes.data ?? []) {
+    const key = `${row.variant_id}:${row.tier_slug}`
+    if (!(key in priceMap)) {
+      priceMap[key] = Number(row.price)
+    }
+  }
 
   return (
     <div>
@@ -87,8 +135,10 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
         userId={user.id}
         prefillContact={prefillContact}
         prefillLead={prefillLead}
-        tiers={tiers ?? []}
-        products={[]}
+        tiers={tiers}
+        allContacts={allContacts}
+        allVariants={allVariants}
+        priceMap={priceMap}
       />
     </div>
   )

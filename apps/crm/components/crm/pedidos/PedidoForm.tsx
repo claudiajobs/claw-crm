@@ -1,24 +1,37 @@
 'use client'
 
-import { useState, useTransition, useRef, useEffect, useCallback } from 'react'
+import { useState, useTransition, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { IconX, IconPlus, IconSearch } from '@tabler/icons-react'
 import { createPedido, addItem, submitPedido } from '@/lib/actions/pedidos'
-import {
-  searchContacts,
-  quickCreateContact,
-  searchVariants,
-  fetchVariantPrice,
-} from '@/lib/actions/pedido-form'
+import { quickCreateContact } from '@/lib/actions/pedido-form'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
+
+interface PrefetchedContact {
+  id: string
+  first_name: string
+  last_name: string
+  email: string
+  membership_tier: string | null
+}
+
+interface PrefetchedVariant {
+  id: string
+  sku: string
+  name: string
+  unit: string
+  productName: string
+}
 
 interface PedidoFormProps {
   userId: string
   prefillContact: { id: string; name: string } | null
   prefillLead: { id: string; title: string; contactId: string; contactName: string } | null
   tiers: Array<{ slug: string; name: string }>
-  products: Array<{ id: string; name: string; slug: string; variants: Array<{ id: string; sku: string; name: string; unit: string; active: boolean }> }>
+  allContacts: PrefetchedContact[]
+  allVariants: PrefetchedVariant[]
+  priceMap: Record<string, number>
 }
 
 interface SelectedContact {
@@ -38,20 +51,7 @@ interface CartItem {
   discountPct: number
 }
 
-interface ContactResult {
-  id: string
-  name: string
-  tier: string | null
-}
-
-interface VariantResult {
-  id: string
-  label: string
-  sku: string
-  unit: string
-  productName: string
-  variantName: string
-}
+const MAX_DROPDOWN_ITEMS = 50
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -60,12 +60,16 @@ export default function PedidoForm({
   prefillContact,
   prefillLead,
   tiers,
+  allContacts,
+  allVariants,
+  priceMap,
 }: PedidoFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   // Contact state
+  const [localContacts, setLocalContacts] = useState<PrefetchedContact[]>(allContacts)
   const [selectedContact, setSelectedContact] = useState<SelectedContact | null>(
     prefillLead
       ? { id: prefillLead.contactId, name: prefillLead.contactName, tier: null }
@@ -74,16 +78,14 @@ export default function PedidoForm({
         : null
   )
   const [contactSearch, setContactSearch] = useState('')
-  const [contactResults, setContactResults] = useState<ContactResult[]>([])
   const [showContactDropdown, setShowContactDropdown] = useState(false)
   const [showNewContactForm, setShowNewContactForm] = useState(false)
   const contactRef = useRef<HTMLDivElement>(null)
 
   // Product state
   const [productSearch, setProductSearch] = useState('')
-  const [productResults, setProductResults] = useState<VariantResult[]>([])
   const [showProductDropdown, setShowProductDropdown] = useState(false)
-  const [selectedVariant, setSelectedVariant] = useState<VariantResult | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<PrefetchedVariant | null>(null)
   const [variantPrice, setVariantPrice] = useState<number | null>(null)
   const [quantity, setQuantity] = useState(1)
   const productRef = useRef<HTMLDivElement>(null)
@@ -99,47 +101,82 @@ export default function PedidoForm({
   // Derived tier: from contact's membership or manually selected
   const effectiveTier = selectedContact?.tier || tier || 'standard'
 
-  // ─── Contact search with debounce ───────────────────────────────────────────
+  // ─── Client-side contact filtering ──────────────────────────────────────────
 
-  useEffect(() => {
-    if (contactSearch.length < 2) {
-      setContactResults([])
-      return
+  const filteredContacts = useMemo(() => {
+    const q = contactSearch.toLowerCase().trim()
+    const list = q
+      ? localContacts.filter((c) => {
+          const full = `${c.first_name} ${c.last_name}`.toLowerCase()
+          return (
+            full.includes(q) ||
+            c.first_name.toLowerCase().includes(q) ||
+            c.last_name.toLowerCase().includes(q) ||
+            c.email.toLowerCase().includes(q)
+          )
+        })
+      : localContacts
+    return list.slice(0, MAX_DROPDOWN_ITEMS)
+  }, [contactSearch, localContacts])
+
+  const contactsTruncated = useMemo(() => {
+    if (!contactSearch.trim()) return localContacts.length > MAX_DROPDOWN_ITEMS
+    const q = contactSearch.toLowerCase().trim()
+    let count = 0
+    for (const c of localContacts) {
+      const full = `${c.first_name} ${c.last_name}`.toLowerCase()
+      if (full.includes(q) || c.first_name.toLowerCase().includes(q) || c.last_name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)) {
+        count++
+        if (count > MAX_DROPDOWN_ITEMS) return true
+      }
     }
-    const timer = setTimeout(async () => {
-      const results = await searchContacts(contactSearch)
-      setContactResults(results)
-      setShowContactDropdown(true)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [contactSearch])
+    return false
+  }, [contactSearch, localContacts])
 
-  // ─── Product search with debounce ───────────────────────────────────────────
+  // ─── Client-side product filtering ──────────────────────────────────────────
 
-  useEffect(() => {
-    if (productSearch.length < 2) {
-      setProductResults([])
-      return
+  const filteredVariants = useMemo(() => {
+    const q = productSearch.toLowerCase().trim()
+    const list = q
+      ? allVariants.filter((v) =>
+          v.productName.toLowerCase().includes(q) ||
+          v.name.toLowerCase().includes(q) ||
+          v.sku.toLowerCase().includes(q)
+        )
+      : allVariants
+    return list.slice(0, MAX_DROPDOWN_ITEMS)
+  }, [productSearch, allVariants])
+
+  const variantsTruncated = useMemo(() => {
+    if (!productSearch.trim()) return allVariants.length > MAX_DROPDOWN_ITEMS
+    const q = productSearch.toLowerCase().trim()
+    let count = 0
+    for (const v of allVariants) {
+      if (v.productName.toLowerCase().includes(q) || v.name.toLowerCase().includes(q) || v.sku.toLowerCase().includes(q)) {
+        count++
+        if (count > MAX_DROPDOWN_ITEMS) return true
+      }
     }
-    const timer = setTimeout(async () => {
-      const results = await searchVariants(productSearch)
-      setProductResults(results)
-      setShowProductDropdown(true)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [productSearch])
+    return false
+  }, [productSearch, allVariants])
 
-  // ─── Fetch price when variant or tier changes ───────────────────────────────
+  // ─── Price lookup from prefetched map ───────────────────────────────────────
 
+  const lookupPrice = useCallback(
+    (variantId: string, tierSlug: string): number | null => {
+      return priceMap[`${variantId}:${tierSlug}`] ?? null
+    },
+    [priceMap]
+  )
+
+  // Update price when variant or tier changes
   useEffect(() => {
     if (!selectedVariant) {
       setVariantPrice(null)
       return
     }
-    fetchVariantPrice(selectedVariant.id, effectiveTier).then((r) => {
-      setVariantPrice(r.price)
-    })
-  }, [selectedVariant, effectiveTier])
+    setVariantPrice(lookupPrice(selectedVariant.id, effectiveTier))
+  }, [selectedVariant, effectiveTier, lookupPrice])
 
   // ─── Click outside handlers ─────────────────────────────────────────────────
 
@@ -158,11 +195,16 @@ export default function PedidoForm({
 
   // ─── Handlers ─────────────────────────────────────────────────────────────────
 
-  function handleSelectContact(c: ContactResult) {
-    setSelectedContact(c)
+  function handleSelectContact(c: PrefetchedContact) {
+    const selected: SelectedContact = {
+      id: c.id,
+      name: [c.first_name, c.last_name].filter(Boolean).join(' '),
+      tier: c.membership_tier,
+    }
+    setSelectedContact(selected)
     setContactSearch('')
     setShowContactDropdown(false)
-    if (c.tier) setTier(c.tier)
+    if (c.membership_tier) setTier(c.membership_tier)
   }
 
   function handleClearContact() {
@@ -170,7 +212,7 @@ export default function PedidoForm({
     setContactSearch('')
   }
 
-  function handleSelectVariant(v: VariantResult) {
+  function handleSelectVariant(v: PrefetchedVariant) {
     setSelectedVariant(v)
     setProductSearch('')
     setShowProductDropdown(false)
@@ -183,7 +225,7 @@ export default function PedidoForm({
       ...prev,
       {
         variantId: selectedVariant.id,
-        variantName: selectedVariant.variantName,
+        variantName: selectedVariant.name,
         productName: selectedVariant.productName,
         sku: selectedVariant.sku,
         quantity,
@@ -305,51 +347,60 @@ export default function PedidoForm({
                   <input
                     type="text"
                     className="input"
-                    placeholder="Buscar por nome..."
+                    placeholder="Buscar por nome ou e-mail..."
                     value={contactSearch}
-                    onChange={(e) => setContactSearch(e.target.value)}
-                    onFocus={() => contactResults.length > 0 && setShowContactDropdown(true)}
+                    onChange={(e) => {
+                      setContactSearch(e.target.value)
+                      setShowContactDropdown(true)
+                    }}
+                    onFocus={() => setShowContactDropdown(true)}
                     style={{ paddingLeft: 30 }}
                   />
                 </div>
-                {showContactDropdown && contactResults.length > 0 && (
+                {showContactDropdown && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
                     background: '#fff', border: '1px solid var(--color-gray-200)',
                     borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    maxHeight: 200, overflowY: 'auto', marginTop: 4,
+                    maxHeight: 240, overflowY: 'auto', marginTop: 4,
                   }}>
-                    {contactResults.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => handleSelectContact(c)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                          padding: '8px 12px', border: 'none', background: 'none',
-                          cursor: 'pointer', textAlign: 'left', fontSize: 13,
-                        }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = 'var(--color-gray-50)')}
-                        onMouseOut={(e) => (e.currentTarget.style.background = 'none')}
-                      >
-                        <span style={{ fontWeight: 500, color: 'var(--color-gray-800)' }}>{c.name}</span>
-                        {c.tier && (
-                          <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>({c.tier})</span>
+                    {filteredContacts.length > 0 ? (
+                      <>
+                        {filteredContacts.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => handleSelectContact(c)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                              padding: '8px 12px', border: 'none', background: 'none',
+                              cursor: 'pointer', textAlign: 'left', fontSize: 13,
+                            }}
+                            onMouseOver={(e) => (e.currentTarget.style.background = 'var(--color-gray-50)')}
+                            onMouseOut={(e) => (e.currentTarget.style.background = 'none')}
+                          >
+                            <span style={{ fontWeight: 500, color: 'var(--color-gray-800)', flex: 1 }}>
+                              {[c.first_name, c.last_name].filter(Boolean).join(' ')}
+                            </span>
+                            {c.email && (
+                              <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>{c.email}</span>
+                            )}
+                            {c.membership_tier && (
+                              <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>({c.membership_tier})</span>
+                            )}
+                          </button>
+                        ))}
+                        {contactsTruncated && (
+                          <p style={{ fontSize: 11, color: 'var(--color-gray-400)', padding: '6px 12px', margin: 0, borderTop: '1px solid var(--color-gray-100)' }}>
+                            Digite para refinar a busca...
+                          </p>
                         )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {showContactDropdown && contactSearch.length >= 2 && contactResults.length === 0 && (
-                  <div style={{
-                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-                    background: '#fff', border: '1px solid var(--color-gray-200)',
-                    borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    padding: '8px 12px', marginTop: 4,
-                  }}>
-                    <p style={{ fontSize: 12, color: 'var(--color-gray-400)', margin: 0 }}>
-                      Nenhum resultado
-                    </p>
+                      </>
+                    ) : (
+                      <p style={{ fontSize: 12, color: 'var(--color-gray-400)', padding: '8px 12px', margin: 0 }}>
+                        Nenhum resultado
+                      </p>
+                    )}
                   </div>
                 )}
                 <button
@@ -414,6 +465,17 @@ export default function PedidoForm({
           onCreated={(c) => {
             setSelectedContact(c)
             setShowNewContactForm(false)
+            // Add to local list so the new contact is available if user clears and re-selects
+            setLocalContacts((prev) => [
+              ...prev,
+              {
+                id: c.id,
+                first_name: c.name.split(' ')[0] ?? '',
+                last_name: c.name.split(' ').slice(1).join(' '),
+                email: '',
+                membership_tier: c.tier,
+              },
+            ])
           }}
           onCancel={() => setShowNewContactForm(false)}
         />
@@ -436,7 +498,7 @@ export default function PedidoForm({
                 }}
               >
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-gray-800)', flex: 1 }}>
-                  {selectedVariant.label}
+                  {selectedVariant.productName} — {selectedVariant.name}
                 </span>
                 {variantPrice !== null && (
                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-primary)' }}>
@@ -463,39 +525,55 @@ export default function PedidoForm({
                     className="input"
                     placeholder="Buscar por nome, SKU..."
                     value={productSearch}
-                    onChange={(e) => setProductSearch(e.target.value)}
-                    onFocus={() => productResults.length > 0 && setShowProductDropdown(true)}
+                    onChange={(e) => {
+                      setProductSearch(e.target.value)
+                      setShowProductDropdown(true)
+                    }}
+                    onFocus={() => setShowProductDropdown(true)}
                     style={{ paddingLeft: 30 }}
                   />
                 </div>
-                {showProductDropdown && productResults.length > 0 && (
+                {showProductDropdown && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
                     background: '#fff', border: '1px solid var(--color-gray-200)',
                     borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                     maxHeight: 240, overflowY: 'auto', marginTop: 4,
                   }}>
-                    {productResults.map((v) => (
-                      <button
-                        key={v.id}
-                        type="button"
-                        onClick={() => handleSelectVariant(v)}
-                        style={{
-                          display: 'flex', flexDirection: 'column', gap: 2, width: '100%',
-                          padding: '8px 12px', border: 'none', background: 'none',
-                          cursor: 'pointer', textAlign: 'left',
-                        }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = 'var(--color-gray-50)')}
-                        onMouseOut={(e) => (e.currentTarget.style.background = 'none')}
-                      >
-                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-gray-800)' }}>
-                          {v.label}
-                        </span>
-                        <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
-                          SKU: {v.sku}
-                        </span>
-                      </button>
-                    ))}
+                    {filteredVariants.length > 0 ? (
+                      <>
+                        {filteredVariants.map((v) => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => handleSelectVariant(v)}
+                            style={{
+                              display: 'flex', flexDirection: 'column', gap: 2, width: '100%',
+                              padding: '8px 12px', border: 'none', background: 'none',
+                              cursor: 'pointer', textAlign: 'left',
+                            }}
+                            onMouseOver={(e) => (e.currentTarget.style.background = 'var(--color-gray-50)')}
+                            onMouseOut={(e) => (e.currentTarget.style.background = 'none')}
+                          >
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-gray-800)' }}>
+                              {v.productName} — {v.name}
+                            </span>
+                            <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
+                              SKU: {v.sku}
+                            </span>
+                          </button>
+                        ))}
+                        {variantsTruncated && (
+                          <p style={{ fontSize: 11, color: 'var(--color-gray-400)', padding: '6px 12px', margin: 0, borderTop: '1px solid var(--color-gray-100)' }}>
+                            Digite para refinar a busca...
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p style={{ fontSize: 12, color: 'var(--color-gray-400)', padding: '8px 12px', margin: 0 }}>
+                        Nenhum resultado
+                      </p>
+                    )}
                   </div>
                 )}
               </>
