@@ -9,12 +9,14 @@ import {
   IconCheckbox,
   IconSettings,
   IconKey,
+  IconShoppingCart,
 } from '@tabler/icons-react'
 
 const baseNavItems = [
   { href: '/pipeline', label: 'Pipeline', icon: <IconTimeline size={17} stroke={1.5} aria-hidden /> },
   { href: '/leads', label: 'Leads', icon: <IconBriefcase size={17} stroke={1.5} aria-hidden /> },
   { href: '/contacts', label: 'Contatos', icon: <IconUsers size={17} stroke={1.5} aria-hidden /> },
+  { href: '/pedidos', label: 'Pedidos', icon: <IconShoppingCart size={17} stroke={1.5} aria-hidden /> },
   { href: '/tasks', label: 'Tarefas', icon: <IconCheckbox size={17} stroke={1.5} aria-hidden /> },
   { href: '/settings', label: 'Configurações', icon: <IconSettings size={17} stroke={1.5} aria-hidden /> },
   { href: '/settings/users', label: 'Usuários', icon: <IconKey size={17} stroke={1.5} aria-hidden />, adminOnly: true },

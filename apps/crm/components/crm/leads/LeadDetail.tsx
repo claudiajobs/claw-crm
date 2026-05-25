@@ -1,4 +1,6 @@
+import Link from 'next/link'
 import LeadScoreBadge from './LeadScoreBadge'
+import LeadOutcome from './LeadOutcome'
 import ActivityTimelineSection from './ActivityTimelineSection'
 import TaskSection from '@/components/crm/tasks/TaskSection'
 import type { TaskItem } from '@/components/crm/tasks/TaskSection'
@@ -20,6 +22,29 @@ const TIMELINE_LABEL: Record<string, string> = {
   '1-3m': '1 a 3 meses',
   '3-6m': '3 a 6 meses',
   '6m+': 'Mais de 6 meses',
+}
+
+interface PedidoSummary {
+  id: string
+  status: string
+  total: number
+  created_at: string
+}
+
+const PEDIDO_STATUS_LABEL: Record<string, string> = {
+  draft: 'Rascunho',
+  pending_approval: 'Aguardando aprovação',
+  approved: 'Aprovado',
+  rejected: 'Rejeitado',
+  cancelled: 'Cancelado',
+}
+
+const PEDIDO_STATUS_BADGE: Record<string, string> = {
+  draft: 'badge badge-sq badge-gray',
+  pending_approval: 'badge badge-sq badge-amber',
+  approved: 'badge badge-sq badge-teal',
+  rejected: 'badge badge-sq badge-coral',
+  cancelled: 'badge badge-sq badge-gray',
 }
 
 interface LeadDetailProps {
@@ -44,9 +69,10 @@ interface LeadDetailProps {
   currentUserId: string
   currentUserName: string
   tasks: TaskItem[]
+  pedidos?: PedidoSummary[]
 }
 
-export default function LeadDetail({ lead, activities, matchedRules, maxScore, currentUserId, currentUserName, tasks }: LeadDetailProps) {
+export default function LeadDetail({ lead, activities, matchedRules, maxScore, currentUserId, currentUserName, tasks, pedidos }: LeadDetailProps) {
   const contactName = lead.contacts
     ? [lead.contacts.first_name, lead.contacts.last_name].filter(Boolean).join(' ')
     : '—'
@@ -136,6 +162,40 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore, c
           </ul>
         )}
       </div>
+
+      {/* Lead outcome actions — only for open leads */}
+      {!['ganho', 'perdido'].includes(lead.status) && (
+        <LeadOutcome leadId={lead.id} />
+      )}
+
+      {/* Pedidos for this lead */}
+      {pedidos && pedidos.length > 0 && (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-gray-800)' }}>
+              Pedidos ({pedidos.length})
+            </h3>
+            <Link
+              href={`/pedidos/new?lead_id=${lead.id}`}
+              style={{ fontSize: 12, color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
+            >
+              + Novo pedido
+            </Link>
+          </div>
+          <ul style={{ display: 'flex', flexDirection: 'column', gap: 8, listStyle: 'none' }}>
+            {pedidos.map((p) => (
+              <li key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <Link href={`/pedidos/${p.id}`} style={{ fontSize: 13, color: 'var(--color-primary)', textDecoration: 'none' }}>
+                  {new Date(p.created_at).toLocaleDateString('pt-BR')} — {Number(p.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </Link>
+                <span className={PEDIDO_STATUS_BADGE[p.status] ?? 'badge badge-sq badge-gray'}>
+                  {PEDIDO_STATUS_LABEL[p.status] ?? p.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Tasks */}
       <TaskSection
