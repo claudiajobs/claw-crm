@@ -8,7 +8,7 @@ import { promoteMembership } from '@/lib/memberships/promote'
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface CreatePedidoData {
-  contactId: string
+  contactId: string | null
   leadId?: string
   ownerId: string
   notes?: string
@@ -52,7 +52,7 @@ export async function createPedido(data: CreatePedidoData) {
   const { data: pedido, error } = await supabase
     .from('pedidos')
     .insert({
-      contact_id: data.contactId,
+      contact_id: data.contactId ?? undefined,
       lead_id: data.leadId ?? null,
       owner_id: data.ownerId,
       status: 'draft',
