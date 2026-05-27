@@ -38,7 +38,8 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
       contact:contacts(id, first_name, last_name, whatsapp_number, membership_tier),
       lead:leads(id, title),
       approver:users!pedidos_approved_by_fkey(name),
-      rejector:users!pedidos_rejected_by_fkey(name)
+      rejector:users!pedidos_rejected_by_fkey(name),
+      owner:users!pedidos_owner_id_fkey(name)
       `
     )
     .eq('id', id)
@@ -68,6 +69,7 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
   const lead = Array.isArray(pedido.lead) ? pedido.lead[0] : pedido.lead
   const approver = Array.isArray(pedido.approver) ? pedido.approver[0] : pedido.approver
   const rejector = Array.isArray(pedido.rejector) ? pedido.rejector[0] : pedido.rejector
+  const owner = Array.isArray(pedido.owner) ? pedido.owner[0] : pedido.owner
   const contactName = contact
     ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
     : '—'
@@ -110,7 +112,9 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
       )}
       {pedido.status === 'approved' && (
         <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: '#E8F5E9', border: '1px solid #81C784', fontSize: 14, color: '#2E7D32', marginBottom: 8 }}>
-          ✅ Aprovado{pedido.approved_at ? ` em ${new Date(pedido.approved_at).toLocaleDateString('pt-BR')}` : ''}{approver?.name ? ` por ${approver.name}` : ''}
+          {pedido.approved_by
+            ? `✅ Revisado por ${approver?.name ?? '—'}${pedido.approved_at ? ` em ${new Date(pedido.approved_at).toLocaleDateString('pt-BR')}` : ''}`
+            : `⚙️ Revisado automaticamente${pedido.approved_at ? ` em ${new Date(pedido.approved_at).toLocaleDateString('pt-BR')}` : ''}`}
         </div>
       )}
       {pedido.status === 'rejected' && (
@@ -122,6 +126,16 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
         <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--color-gray-50)', border: '1px solid var(--color-gray-200)', fontSize: 14, color: 'var(--color-gray-500)', marginBottom: 8 }}>
           🚫 Cancelado
         </div>
+      )}
+
+      {owner?.name && (
+        <p style={{ fontSize: 12, color: 'var(--color-gray-400)', marginBottom: 16 }}>
+          Criado por {owner.name} em{' '}
+          {new Date(pedido.created_at).toLocaleDateString('pt-BR', {
+            day: 'numeric', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit',
+          }).replace(',', ' às')}
+        </p>
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
