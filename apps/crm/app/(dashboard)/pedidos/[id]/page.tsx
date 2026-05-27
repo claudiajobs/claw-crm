@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { IconArrowLeft } from '@tabler/icons-react'
+import { IconArrowLeft, IconPrinter } from '@tabler/icons-react'
 import PedidoActions from '@/components/crm/pedidos/PedidoActions'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -96,6 +96,33 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
         </div>
         <h1 className="topbar-title md:hidden">Pedido — {contactName}</h1>
       </div>
+
+      {/* Status banner */}
+      {pedido.status === 'draft' && (
+        <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--color-gray-50)', border: '1px solid var(--color-gray-200)', fontSize: 14, color: 'var(--color-gray-600)', marginBottom: 8 }}>
+          📝 Rascunho — este pedido ainda não foi enviado.
+        </div>
+      )}
+      {pedido.status === 'pending_approval' && (
+        <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: '#FFF8E1', border: '1px solid #FFD54F', fontSize: 14, color: '#8D6E00', marginBottom: 8 }}>
+          🕐 Aguardando aprovação — um administrador precisa aprovar este pedido.
+        </div>
+      )}
+      {pedido.status === 'approved' && (
+        <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: '#E8F5E9', border: '1px solid #81C784', fontSize: 14, color: '#2E7D32', marginBottom: 8 }}>
+          ✅ Aprovado{pedido.approved_at ? ` em ${new Date(pedido.approved_at).toLocaleDateString('pt-BR')}` : ''}{approver?.name ? ` por ${approver.name}` : ''}
+        </div>
+      )}
+      {pedido.status === 'rejected' && (
+        <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: '#FFEBEE', border: '1px solid #E57373', fontSize: 14, color: '#C62828', marginBottom: 8 }}>
+          ❌ Reprovado{pedido.rejected_reason ? ` — ${pedido.rejected_reason}` : ''}
+        </div>
+      )}
+      {pedido.status === 'cancelled' && (
+        <div style={{ padding: '14px 18px', borderRadius: 'var(--radius-lg)', background: 'var(--color-gray-50)', border: '1px solid var(--color-gray-200)', fontSize: 14, color: 'var(--color-gray-500)', marginBottom: 8 }}>
+          🚫 Cancelado
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* Summary card */}
@@ -205,6 +232,18 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Print button */}
+        <div>
+          <Link
+            href={`/pedidos/${pedido.id}/imprimir`}
+            className="btn btn-ghost"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <IconPrinter size={16} stroke={1.5} aria-hidden />
+            Imprimir / Baixar PDF
+          </Link>
         </div>
 
         {/* Approval actions */}

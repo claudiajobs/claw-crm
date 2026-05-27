@@ -788,7 +788,7 @@ export default function PedidoForm({
           disabled={isPending}
           onClick={handleSubmit}
         >
-          {isPending ? 'Criando...' : 'Criar e enviar pedido'}
+          {isPending ? 'Criando pedido...' : 'Criar pedido'}
         </button>
       </div>
     </div>
