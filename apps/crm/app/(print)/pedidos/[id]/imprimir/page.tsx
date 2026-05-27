@@ -71,7 +71,8 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
         dangerouslySetInnerHTML={{
           __html: `
             @media print {
-              body { margin: 0 !important; padding: 0 !important; }
+              @page { margin: 0; }
+              body { margin: 1.5cm !important; padding: 0 !important; }
               .no-print { display: none !important; }
             }
             .print-page { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; color: #222; padding: 32px; max-width: 800px; margin: 0 auto; }
