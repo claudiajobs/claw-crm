@@ -132,6 +132,20 @@ export default async function LeadPage({ params }: LeadPageProps) {
     .single()
   const currentUserName = currentUserRow?.name ?? 'Usuário'
 
+  // Fetch pedidos linked to this lead
+  const { data: pedidoRows } = await supabase
+    .from('pedidos')
+    .select('id, status, total, created_at')
+    .eq('lead_id', id)
+    .order('created_at', { ascending: false })
+
+  const pedidos = (pedidoRows ?? []).map((p) => ({
+    id: p.id,
+    status: p.status,
+    total: Number(p.total),
+    created_at: p.created_at,
+  }))
+
   const leadForDetail = {
     id: lead.id,
     title: lead.title,
@@ -187,6 +201,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
         currentUserId={user.id}
         currentUserName={currentUserName}
         tasks={tasks}
+        pedidos={pedidos}
       />
     </div>
   )
