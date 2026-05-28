@@ -23,14 +23,35 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
     .select(
       `
       *,
-      contact:contacts(id, first_name, last_name, membership_tier),
-      approver:users!pedidos_approved_by_fkey(name)
+      contact:contacts(id, first_name, last_name, membership_tier)
       `
     )
     .eq('id', id)
     .single()
 
   if (!pedido) notFound()
+
+  // Fetch creator name
+  let creatorName: string | null = null
+  if (pedido.owner_id) {
+    const { data: creator } = await svc
+      .from('users')
+      .select('name')
+      .eq('id', pedido.owner_id)
+      .single()
+    creatorName = creator?.name ?? null
+  }
+
+  // Fetch approver name (if approved_by is set and not already joined)
+  let approverName: string | null = null
+  if (pedido.approved_by) {
+    const { data: approverUser } = await svc
+      .from('users')
+      .select('name')
+      .eq('id', pedido.approved_by)
+      .single()
+    approverName = approverUser?.name ?? null
+  }
 
   const { data: items } = await svc
     .from('pedido_items')
@@ -44,7 +65,6 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
     .order('created_at', { ascending: true })
 
   const contact = Array.isArray(pedido.contact) ? pedido.contact[0] : pedido.contact
-  const approver = Array.isArray(pedido.approver) ? pedido.approver[0] : pedido.approver
   const contactName = contact
     ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
     : '—'
@@ -111,9 +131,21 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
         <div className="print-meta">
           <div>
             <h1>Pedido #{id.slice(0, 8)}</h1>
-            <p style={{ color: '#666', fontSize: 12 }}>
-              Criado em {new Date(pedido.created_at).toLocaleDateString('pt-BR')}
+            <p style={{ color: '#555', fontSize: 11 }}>
+              Criado {creatorName ? `por ${creatorName} ` : ''}em{' '}
+              {new Date(pedido.created_at).toLocaleDateString('pt-BR', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
             </p>
+            {pedido.status === 'approved' && (
+              <p style={{ color: '#555', fontSize: 11 }}>
+                {pedido.approved_by
+                  ? `Revisado por ${approverName ?? '—'}`
+                  : '⚙️ Revisado automaticamente'}
+              </p>
+            )}
           </div>
           <span className="print-badge">{STATUS_LABEL[pedido.status] ?? pedido.status}</span>
         </div>
