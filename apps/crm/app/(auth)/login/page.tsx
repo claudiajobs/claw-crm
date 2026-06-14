@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { login } from '@/lib/actions/auth'
 
 interface LoginPageProps {
-  searchParams: Promise<{ next?: string; erro?: string }>
+  searchParams: Promise<{ next?: string; erro?: string; sucesso?: string }>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const { erro } = await searchParams
+  const { erro, sucesso } = await searchParams
 
   return (
     <>
@@ -82,6 +82,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
           )}
 
+          {/* Success */}
+          {sucesso && (
+            <div style={{ marginBottom: 24, padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-success-light, #e6f9f4)', borderLeft: '3px solid var(--color-success)' }}>
+              <p style={{ fontSize: 12, color: '#00856e' }}>{sucesso}</p>
+            </div>
+          )}
+
           <form action={login} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div className="field">
               <label htmlFor="email" className="field-label">
@@ -116,6 +123,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
               Entrar
             </button>
+
+            <div style={{ textAlign: 'right', marginTop: -8 }}>
+              <Link
+                href="/forgot-password"
+                className="forgot-password-link"
+              >
+                Esqueci minha senha
+              </Link>
+            </div>
           </form>
 
           <p style={{ marginTop: 24, textAlign: 'center', fontSize: 12, color: 'var(--color-gray-400)' }}>

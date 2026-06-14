@@ -753,6 +753,16 @@ select.input {
   border: 1.5px solid var(--color-bg-card);
 }
 
+/* ── Forgot password link ── */
+.forgot-password-link {
+  font-size: 12px;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
 /* ── Mobile: prevent iOS Safari zoom on input focus ── */
 @media (max-width: 767px) {
   input,
