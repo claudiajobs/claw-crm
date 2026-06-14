@@ -91,6 +91,25 @@ export async function signup(formData: FormData) {
   redirect('/pending')
 }
 
+export async function sendPasswordReset(formData: FormData) {
+  const supabase = await createClient()
+  const email = (formData.get('email') as string)?.trim() ?? ''
+
+  if (!email) {
+    return { error: 'E-mail é obrigatório.' }
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: process.env.NEXT_PUBLIC_APP_URL + '/reset-password',
+  })
+
+  if (error) {
+    return { error: 'Não encontramos uma conta com este email.' }
+  }
+
+  return { success: true }
+}
+
 export async function logout() {
   const supabase = await createClient()
   await supabase.auth.signOut()
