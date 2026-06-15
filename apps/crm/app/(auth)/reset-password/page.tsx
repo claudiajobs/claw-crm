@@ -15,11 +15,23 @@ export default function ResetPasswordPage() {
   const supabase = createClient()
 
   useEffect(() => {
+    // Timeout fallback — if token doesn't trigger PASSWORD_RECOVERY in 5s, show error
+    const timeout = setTimeout(() => {
+      setErrorMsg('Link inválido ou expirado. Solicite um novo email de recuperação.')
+      setStatus('error')
+    }, 5000)
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
+        clearTimeout(timeout)
         setReady(true)
       }
     })
+
+    return () => {
+      clearTimeout(timeout)
+      subscription.unsubscribe()
+    }
 
     return () => subscription.unsubscribe()
   }, [supabase.auth])
