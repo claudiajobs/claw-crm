@@ -54,7 +54,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   let query = supabase
     .from('leads')
     .select(
-      'id, title, status, score, value, contact_id, created_at, contacts(first_name, last_name, preferred_channel)'
+      'id, title, status, score, value, contact_id, created_at, contacts(first_name, last_name, preferred_channel), users!owner_id(name)'
     )
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
@@ -146,6 +146,8 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               const contactName = contact
                 ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
                 : '—'
+              const ownerRow = Array.isArray(lead.users) ? lead.users[0] : lead.users
+              const ownerName = (ownerRow as { name: string } | null)?.name ?? null
               return (
                 <li key={lead.id} style={{ borderBottom: '0.5px solid var(--color-gray-100)' }}>
                   <Link
@@ -163,6 +165,11 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
                         {STATUS_LABEL[lead.status] ?? lead.status}
                       </span>
                       <span style={{ fontSize: 12, color: 'var(--color-gray-500)' }}>{contactName}</span>
+                      {ownerName && (
+                        <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
+                          {ownerName}
+                        </span>
+                      )}
                       {lead.value != null && (
                         <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-gray-700)', marginLeft: 'auto' }}>
                           {Number(lead.value).toLocaleString('pt-BR', {
@@ -185,6 +192,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               <tr>
                 <th>Título</th>
                 <th>Contato</th>
+                <th>Responsável</th>
                 <th>Status</th>
                 <th>Score</th>
                 <th>Valor (R$)</th>
@@ -198,6 +206,8 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
                 const contactName = contact
                   ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
                   : '—'
+                const ownerRow = Array.isArray(lead.users) ? lead.users[0] : lead.users
+                const ownerName = (ownerRow as { name: string } | null)?.name ?? null
 
                 return (
                   <tr key={lead.id}>
@@ -207,6 +217,18 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
                       </Link>
                     </td>
                     <td style={{ color: 'var(--color-gray-600)' }}>{contactName}</td>
+                    <td>
+                      {ownerName ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div className="avatar avatar-sm avatar-purple">
+                            {ownerName.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+                          </div>
+                          <span style={{ fontSize: 13, color: 'var(--color-gray-600)' }}>{ownerName}</span>
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--color-gray-300)' }}>—</span>
+                      )}
+                    </td>
                     <td>
                       <span className={STATUS_BADGE[lead.status] ?? 'badge badge-sq badge-gray'}>
                         {STATUS_LABEL[lead.status] ?? lead.status}

@@ -210,6 +210,7 @@ export async function assignLead(leadId: string, userId: string) {
 
   revalidatePath(`/leads/${leadId}`)
   revalidatePath('/leads')
+  revalidatePath('/pipeline')
 }
 
 export async function updateLeadFields(

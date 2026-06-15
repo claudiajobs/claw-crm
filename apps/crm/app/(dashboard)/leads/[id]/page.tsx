@@ -23,7 +23,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
   const { data: lead } = await supabase
     .from('leads')
     .select(
-      'id, title, status, score, value, product_interest, project_type, decision_timeline, estimated_volume_liters, created_at, created_by, contact_id, contacts(first_name, last_name, preferred_channel, whatsapp_number, instagram_handle, monthly_volume_liters, account_id)'
+      'id, title, status, score, value, product_interest, project_type, decision_timeline, estimated_volume_liters, created_at, created_by, owner_id, contact_id, contacts(first_name, last_name, preferred_channel, whatsapp_number, instagram_handle, monthly_volume_liters, account_id)'
     )
     .eq('id', id)
     .single()
@@ -127,10 +127,31 @@ export default async function LeadPage({ params }: LeadPageProps) {
 
   const { data: currentUserRow } = await supabase
     .from('users')
-    .select('name')
+    .select('name, role')
     .eq('id', user.id)
     .single()
   const currentUserName = currentUserRow?.name ?? 'Usuário'
+  const currentUserRole = currentUserRow?.role ?? 'vendedor'
+
+  // Fetch lead owner
+  let ownerData: { id: string; name: string } | null = null
+  if (lead.owner_id) {
+    const { data: ownerRow } = await supabase
+      .from('users')
+      .select('id, name')
+      .eq('id', lead.owner_id)
+      .single()
+    if (ownerRow) ownerData = { id: ownerRow.id, name: ownerRow.name }
+  }
+
+  // Fetch active users for assignment dropdown
+  const { data: activeUserRows } = await supabase
+    .from('users')
+    .select('id, name')
+    .eq('status', 'active')
+    .in('role', ['admin', 'editor', 'vendedor'])
+    .order('name')
+  const activeUsers = (activeUserRows ?? []).map((u) => ({ id: u.id, name: u.name }))
 
   // Fetch pedidos linked to this lead
   const { data: pedidoRows } = await supabase
@@ -168,6 +189,7 @@ export default async function LeadPage({ params }: LeadPageProps) {
           preferred_channel: contactData.preferred_channel ?? null,
         }
       : null,
+    owner_id: lead.owner_id ?? null,
   }
 
   return (
@@ -199,9 +221,12 @@ export default async function LeadPage({ params }: LeadPageProps) {
         matchedRules={matchedRules}
         maxScore={MAX_SCORE}
         currentUserId={user.id}
+        currentUserRole={currentUserRole}
         currentUserName={currentUserName}
         tasks={tasks}
         pedidos={pedidos}
+        owner={ownerData}
+        activeUsers={activeUsers}
       />
     </div>
   )

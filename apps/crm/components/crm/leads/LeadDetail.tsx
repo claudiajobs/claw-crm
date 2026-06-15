@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import LeadScoreBadge from './LeadScoreBadge'
 import LeadOutcome from './LeadOutcome'
+import LeadOwnerSelect from './LeadOwnerSelect'
 import ActivityTimelineSection from './ActivityTimelineSection'
 import TaskSection from '@/components/crm/tasks/TaskSection'
 import type { TaskItem } from '@/components/crm/tasks/TaskSection'
@@ -47,6 +48,11 @@ const PEDIDO_STATUS_BADGE: Record<string, string> = {
   cancelled: 'badge badge-sq badge-gray',
 }
 
+interface UserOption {
+  id: string
+  name: string
+}
+
 interface LeadDetailProps {
   lead: {
     id: string
@@ -62,17 +68,21 @@ interface LeadDetailProps {
     created_by_label: string | null
     contact_id: string
     contacts: { first_name: string; last_name: string | null; preferred_channel: string | null } | null
+    owner_id: string | null
   }
   activities: Activity[]
   matchedRules: MatchedRule[]
   maxScore: number
   currentUserId: string
+  currentUserRole: string
   currentUserName: string
   tasks: TaskItem[]
   pedidos?: PedidoSummary[]
+  owner: { id: string; name: string } | null
+  activeUsers: UserOption[]
 }
 
-export default function LeadDetail({ lead, activities, matchedRules, maxScore, currentUserId, currentUserName, tasks, pedidos }: LeadDetailProps) {
+export default function LeadDetail({ lead, activities, matchedRules, maxScore, currentUserId, currentUserRole, currentUserName, tasks, pedidos, owner, activeUsers }: LeadDetailProps) {
   const contactName = lead.contacts
     ? [lead.contacts.first_name, lead.contacts.last_name].filter(Boolean).join(' ')
     : '—'
@@ -142,6 +152,23 @@ export default function LeadDetail({ lead, activities, matchedRules, maxScore, c
             </div>
           )}
         </dl>
+
+        {/* Responsável */}
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--color-gray-100)' }}>
+          <dt style={dtStyle}>Responsável</dt>
+          <dd style={{ marginTop: 6 }}>
+            <LeadOwnerSelect
+              leadId={lead.id}
+              currentOwner={owner}
+              users={activeUsers}
+              canChange={
+                currentUserRole === 'admin' ||
+                currentUserRole === 'editor' ||
+                (currentUserRole === 'vendedor' && lead.owner_id === currentUserId)
+              }
+            />
+          </dd>
+        </div>
       </div>
 
       {/* Score breakdown */}
