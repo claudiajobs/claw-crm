@@ -90,13 +90,17 @@ export default function ForgotPasswordPage() {
               <div className="sb-mark" style={{ width: 36, height: 36, fontSize: 16 }}>S</div>
               <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-gray-800)', letterSpacing: '-0.02em' }}>sevende</span>
             </div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 4 }}>Recuperar senha</h1>
-            <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Digite seu email para receber o link de recuperação</p>
+            {status !== 'success' && (
+              <>
+                <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 4 }}>Recuperar senha</h1>
+                <p style={{ fontSize: 13, color: 'var(--color-gray-400)' }}>Digite seu email para receber o link de recuperação</p>
+              </>
+            )}
           </div>
 
           {status === 'success' ? (
             <div style={{ textAlign: 'center', padding: '12px 0' }}>
-              <IconCircleCheck size={48} style={{ color: 'var(--color-success)', marginBottom: 16 }} />
+              <IconCircleCheck size={48} style={{ color: 'var(--color-success)', marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
               <p style={{ fontSize: 14, color: 'var(--color-gray-800)', fontWeight: 600, marginBottom: 8 }}>
                 Verifique seu email
               </p>
