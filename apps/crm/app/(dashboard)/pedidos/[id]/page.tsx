@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { IconArrowLeft, IconPrinter } from '@tabler/icons-react'
 import PedidoActions from '@/components/crm/pedidos/PedidoActions'
+import PedidoSharePanel from '@/components/crm/pedidos/PedidoSharePanel'
+import { getPedidoShares, getActiveUsers } from '@/lib/actions/pedido-shares'
 
 const STATUS_LABEL: Record<string, string> = {
   draft: 'Rascunho',
@@ -64,6 +66,11 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
     .eq('id', user.id)
     .single()
   const isAdmin = profile?.role === 'admin'
+  const canShare = isAdmin || profile?.role === 'editor' || pedido.owner_id === user.id
+
+  const [shares, allUsers] = canShare
+    ? await Promise.all([getPedidoShares(id), getActiveUsers()])
+    : [[], []]
 
   const contact = Array.isArray(pedido.contact) ? pedido.contact[0] : pedido.contact
   const lead = Array.isArray(pedido.lead) ? pedido.lead[0] : pedido.lead
@@ -248,8 +255,8 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
           </table>
         </div>
 
-        {/* Print button */}
-        <div>
+        {/* Actions row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <Link
             href={`/pedidos/${pedido.id}/imprimir`}
             className="btn btn-ghost"
@@ -259,6 +266,16 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
             Imprimir / Baixar PDF
           </Link>
         </div>
+
+        {/* Share panel */}
+        {canShare && (
+          <PedidoSharePanel
+            pedidoId={pedido.id}
+            shares={shares}
+            allUsers={allUsers}
+            ownerId={pedido.owner_id}
+          />
+        )}
 
         {/* Approval actions */}
         {isAdmin && pedido.status === 'pending_approval' && (
