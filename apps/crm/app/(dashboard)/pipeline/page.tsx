@@ -13,12 +13,13 @@ export default async function PipelinePage() {
   const { data: rows } = await supabase
     .from('leads')
     .select(
-      'id, title, status, score, value, contacts(first_name, last_name, preferred_channel)'
+      'id, title, status, score, value, owner_id, contacts(first_name, last_name, preferred_channel), users!owner_id(name)'
     )
     .order('score', { ascending: false })
 
   const leads = (rows ?? []).map((lead) => {
     const contact = Array.isArray(lead.contacts) ? lead.contacts[0] : lead.contacts
+    const ownerRow = Array.isArray(lead.users) ? lead.users[0] : lead.users
     return {
       id: lead.id,
       title: lead.title,
@@ -29,6 +30,7 @@ export default async function PipelinePage() {
         ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
         : '—',
       preferred_channel: contact?.preferred_channel ?? null,
+      owner_name: (ownerRow as { name: string } | null)?.name ?? null,
     }
   })
 

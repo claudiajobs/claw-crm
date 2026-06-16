@@ -69,6 +69,7 @@ export default function PipelineBoard({ leads: initialLeads }: PipelineBoardProp
               value: row.value != null ? Number(row.value) : null,
               contact_name: '\u2014',
               preferred_channel: null,
+              owner_name: null,
             },
           ]
         })

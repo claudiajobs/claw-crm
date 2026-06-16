@@ -28,6 +28,7 @@ export interface LeadCardData {
   contact_name: string
   preferred_channel: string | null
   status: string
+  owner_name: string | null
 }
 
 interface LeadCardProps {
@@ -54,6 +55,23 @@ export default function LeadCard({ lead, onStatusChange }: LeadCardProps) {
         <span style={{ fontSize: 11, color: 'var(--color-gray-400)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {lead.contact_name}
         </span>
+      </div>
+
+      <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+        {lead.owner_name ? (
+          <>
+            <div
+              className="avatar avatar-purple"
+              style={{ width: 20, height: 20, fontSize: 8 }}
+              title={lead.owner_name}
+            >
+              {lead.owner_name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+            </div>
+            <span style={{ fontSize: 10, color: 'var(--color-gray-400)' }}>{lead.owner_name}</span>
+          </>
+        ) : (
+          <span style={{ fontSize: 10, color: 'var(--color-gray-300)' }}>—</span>
+        )}
       </div>
 
       {lead.value != null && (
