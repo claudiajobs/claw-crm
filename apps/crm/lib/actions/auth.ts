@@ -73,18 +73,24 @@ export async function signup(formData: FormData) {
   }
 
   if (authData.user) {
-    // Insert user profile with status=pending (use service client to bypass RLS)
-    const serviceClient = createServiceClient()
-    const { error: profileError } = await serviceClient.from('users').insert({
-      id: authData.user.id,
-      email,
-      name,
-      role: 'vendedor',
-      status: 'pending',
-    })
+    // Upsert user profile with status=pending (use service client to bypass RLS).
+    // Idempotent (conflict on id) so it plays nicely with the auth.users trigger,
+    // which also creates a pending profile as a safety net.
+    const { error: profileError } = await serviceClient.from('users').upsert(
+      {
+        id: authData.user.id,
+        email,
+        name,
+        role: 'vendedor',
+        status: 'pending',
+      },
+      { onConflict: 'id' }
+    )
 
+    // Do NOT redirect on failure — the DB trigger guarantees the profile exists,
+    // so we log and continue to /pending rather than blocking the user.
     if (profileError) {
-      redirect(`/signup?erro=${encodeURIComponent('Erro ao criar perfil: ' + profileError.message)}`)
+      console.error('signup: failed to upsert user profile', profileError)
     }
   }
 
