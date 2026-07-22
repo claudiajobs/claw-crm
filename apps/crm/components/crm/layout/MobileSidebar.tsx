@@ -10,6 +10,7 @@ import {
   IconSettings,
   IconKey,
   IconShoppingCart,
+  IconTag,
 } from '@tabler/icons-react'
 
 const baseNavItems = [
@@ -19,6 +20,7 @@ const baseNavItems = [
   { href: '/pedidos', label: 'Pedidos', icon: <IconShoppingCart size={17} stroke={1.5} aria-hidden /> },
   { href: '/tasks', label: 'Tarefas', icon: <IconCheckbox size={17} stroke={1.5} aria-hidden /> },
   { href: '/settings', label: 'Configurações', icon: <IconSettings size={17} stroke={1.5} aria-hidden /> },
+  { href: '/settings/pricing', label: 'Tabela de Preços', icon: <IconTag size={17} stroke={1.5} aria-hidden />, adminOnly: true },
   { href: '/settings/users', label: 'Usuários', icon: <IconKey size={17} stroke={1.5} aria-hidden />, adminOnly: true },
 ]
 

@@ -19,6 +19,8 @@ interface AddItemData {
   quantity: number
   membershipTier: string
   discountPct?: number
+  priceMode?: 'tier' | 'override'
+  overridePrice?: number
 }
 
 // ─── WhatsApp notification hook ──────────────────────────────────────────────
@@ -72,8 +74,19 @@ export async function createPedido(data: CreatePedidoData) {
 export async function addItem(pedidoId: string, item: AddItemData) {
   const supabase = createServiceClient()
 
-  // Price via pricing engine
-  const unitPrice = await getPrice(item.variantId, item.membershipTier)
+  const priceMode = item.priceMode ?? 'tier'
+
+  // Price: manual override skips the pricing engine; tier mode looks it up.
+  let unitPrice: number
+  if (priceMode === 'override') {
+    unitPrice = item.overridePrice ?? 0
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      throw new Error('Preço manual inválido')
+    }
+  } else {
+    unitPrice = await getPrice(item.variantId, item.membershipTier)
+  }
+
   const discountPct = item.discountPct ?? 0
   const lineTotal = item.quantity * unitPrice * (1 - discountPct / 100)
 
@@ -86,6 +99,8 @@ export async function addItem(pedidoId: string, item: AddItemData) {
       unit_price: unitPrice,
       discount_pct: discountPct,
       total: Math.round(lineTotal * 100) / 100,
+      price_mode: priceMode,
+      tier_slug: priceMode === 'override' ? null : item.membershipTier,
     })
     .select('id')
     .single()
