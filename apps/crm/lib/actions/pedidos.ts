@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getPrice } from '@/lib/pricing'
 import { promoteMembership } from '@/lib/memberships/promote'
@@ -46,6 +47,33 @@ async function notifyPendingApproval(pedido: {
   console.log('[WhatsApp Hook] pending_approval notification:', message)
 }
 
+// ─── Admin guard ─────────────────────────────────────────────────────────────
+
+// Throws when the authenticated caller is not an admin. Used to gate manual
+// price overrides so they can never be set by a non-admin calling the action
+// directly. Throws (rather than redirects) because it runs inside item inserts
+// where a redirect would silently swallow the rejection.
+async function requireAdmin() {
+  const auth = await createClient()
+  const {
+    data: { user },
+  } = await auth.auth.getUser()
+  if (!user) {
+    throw new Error('Não autenticado')
+  }
+
+  const svc = createServiceClient()
+  const { data: profile } = await svc
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    throw new Error('Apenas administradores podem definir preço manual')
+  }
+}
+
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
 export async function createPedido(data: CreatePedidoData) {
@@ -79,6 +107,11 @@ export async function addItem(pedidoId: string, item: AddItemData) {
   // Price: manual override skips the pricing engine; tier mode looks it up.
   let unitPrice: number
   if (priceMode === 'override') {
+    // Manual override is admin-only. The client UI already hides it for
+    // non-admins, but a vendedor could call this action directly — enforce
+    // it server-side. Non-admin callers are rejected outright.
+    await requireAdmin()
+
     unitPrice = item.overridePrice ?? 0
     if (!Number.isFinite(unitPrice) || unitPrice < 0) {
       throw new Error('Preço manual inválido')

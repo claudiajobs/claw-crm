@@ -308,12 +308,15 @@ export default function PedidoForm({
       prev.map((item, i) => {
         if (i !== index) return item
         if (mode === 'tier') {
-          // Restore the tier price for this item's tier
+          // Restore the tier price for this item's tier. If no tier price
+          // exists, stay in override mode — switching to tier here would make
+          // the server-side getPrice() throw and fail the whole pedido.
           const tierPrice = lookupPrice(item.variantId, item.tierSlug)
+          if (tierPrice === null) return item
           return {
             ...item,
             priceMode: 'tier',
-            unitPrice: tierPrice ?? item.unitPrice,
+            unitPrice: tierPrice,
           }
         }
         // Switching to manual keeps the current value as the starting point
@@ -748,7 +751,11 @@ export default function PedidoForm({
                           onChange={(e) => handlePriceModeChange(idx, e.target.value as PriceMode)}
                           style={{ fontSize: 12, padding: '2px 6px', height: 28, width: '100%', minWidth: 130 }}
                         >
-                          <option value="tier">{tierName(item.tierSlug)}</option>
+                          {/* Tier disabled when no configured price — prevents a
+                              submit that would throw server-side in getPrice() */}
+                          <option value="tier" disabled={lookupPrice(item.variantId, item.tierSlug) === null}>
+                            {tierName(item.tierSlug)}
+                          </option>
                           <option value="override">Preço manual</option>
                         </select>
                       ) : (
@@ -849,6 +856,7 @@ export default function PedidoForm({
           index={drawerItemIndex}
           isAdmin={isAdmin}
           tierLabel={tierName(cart[drawerItemIndex].tierSlug)}
+          hasTierPrice={lookupPrice(cart[drawerItemIndex].variantId, cart[drawerItemIndex].tierSlug) !== null}
           onClose={() => setDrawerItemIndex(null)}
           onQuantityChange={handleQuantityChange}
           onDiscountChange={handleDiscountChange}
@@ -881,6 +889,7 @@ function MobileItemDrawer({
   index,
   isAdmin,
   tierLabel,
+  hasTierPrice,
   onClose,
   onQuantityChange,
   onDiscountChange,
@@ -893,6 +902,7 @@ function MobileItemDrawer({
   index: number
   isAdmin: boolean
   tierLabel: string
+  hasTierPrice: boolean
   onClose: () => void
   onQuantityChange: (index: number, value: number) => void
   onDiscountChange: (index: number, value: number) => void
@@ -954,7 +964,9 @@ function MobileItemDrawer({
                 onChange={(e) => onPriceModeChange(index, e.target.value as PriceMode)}
                 style={{ marginTop: 4, width: '100%' }}
               >
-                <option value="tier">{tierLabel}</option>
+                {/* Tier disabled when no configured price — prevents a submit
+                    that would throw server-side in getPrice() */}
+                <option value="tier" disabled={!hasTierPrice}>{tierLabel}</option>
                 <option value="override">Preço manual</option>
               </select>
             </div>

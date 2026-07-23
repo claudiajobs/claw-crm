@@ -174,7 +174,9 @@ export async function savePricingGrid(changes: PriceChange[]) {
   const { error } = await svc.from('product_pricing').insert(rows)
 
   if (error) {
-    throw new Error(`Failed to save pricing: ${error.message}`)
+    // Log raw detail server-side; surface a clean PT-BR message to the user.
+    console.error('[savePricingGrid] insert failed:', error)
+    throw new Error('Não foi possível salvar a tabela de preços. Tente novamente.')
   }
 
   revalidatePath('/settings/pricing')
@@ -191,7 +193,9 @@ export async function toggleProductActive(productId: string, active: boolean) {
     .eq('id', productId)
 
   if (error) {
-    throw new Error(`Failed to toggle product: ${error.message}`)
+    // Log raw detail server-side; surface a clean PT-BR message to the user.
+    console.error('[toggleProductActive] update failed:', error)
+    throw new Error('Não foi possível atualizar o produto. Tente novamente.')
   }
 
   revalidatePath('/settings/pricing')
