@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getPrice } from '@/lib/pricing'
 import { promoteMembership } from '@/lib/memberships/promote'
@@ -19,6 +20,8 @@ interface AddItemData {
   quantity: number
   membershipTier: string
   discountPct?: number
+  priceMode?: 'tier' | 'override'
+  overridePrice?: number
 }
 
 // ─── WhatsApp notification hook ──────────────────────────────────────────────
@@ -42,6 +45,33 @@ async function notifyPendingApproval(pedido: {
   // Log the notification intent — actual WhatsApp delivery via bot infrastructure
   // will be wired in when the bot webhook endpoint is available
   console.log('[WhatsApp Hook] pending_approval notification:', message)
+}
+
+// ─── Admin guard ─────────────────────────────────────────────────────────────
+
+// Throws when the authenticated caller is not an admin. Used to gate manual
+// price overrides so they can never be set by a non-admin calling the action
+// directly. Throws (rather than redirects) because it runs inside item inserts
+// where a redirect would silently swallow the rejection.
+async function requireAdmin() {
+  const auth = await createClient()
+  const {
+    data: { user },
+  } = await auth.auth.getUser()
+  if (!user) {
+    throw new Error('Não autenticado')
+  }
+
+  const svc = createServiceClient()
+  const { data: profile } = await svc
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') {
+    throw new Error('Apenas administradores podem definir preço manual')
+  }
 }
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
@@ -72,8 +102,24 @@ export async function createPedido(data: CreatePedidoData) {
 export async function addItem(pedidoId: string, item: AddItemData) {
   const supabase = createServiceClient()
 
-  // Price via pricing engine
-  const unitPrice = await getPrice(item.variantId, item.membershipTier)
+  const priceMode = item.priceMode ?? 'tier'
+
+  // Price: manual override skips the pricing engine; tier mode looks it up.
+  let unitPrice: number
+  if (priceMode === 'override') {
+    // Manual override is admin-only. The client UI already hides it for
+    // non-admins, but a vendedor could call this action directly — enforce
+    // it server-side. Non-admin callers are rejected outright.
+    await requireAdmin()
+
+    unitPrice = item.overridePrice ?? 0
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      throw new Error('Preço manual inválido')
+    }
+  } else {
+    unitPrice = await getPrice(item.variantId, item.membershipTier)
+  }
+
   const discountPct = item.discountPct ?? 0
   const lineTotal = item.quantity * unitPrice * (1 - discountPct / 100)
 
@@ -86,6 +132,8 @@ export async function addItem(pedidoId: string, item: AddItemData) {
       unit_price: unitPrice,
       discount_pct: discountPct,
       total: Math.round(lineTotal * 100) / 100,
+      price_mode: priceMode,
+      tier_slug: priceMode === 'override' ? null : item.membershipTier,
     })
     .select('id')
     .single()
@@ -104,14 +152,15 @@ export async function addItem(pedidoId: string, item: AddItemData) {
 export async function submitPedido(pedidoId: string) {
   const supabase = createServiceClient()
 
-  // Check if any item has discount
+  // Check if any item has discount or a price override
   const { data: items } = await supabase
     .from('pedido_items')
-    .select('discount_pct')
+    .select('discount_pct, price_mode')
     .eq('pedido_id', pedidoId)
 
   const hasDiscount = (items ?? []).some((i) => Number(i.discount_pct) > 0)
-  const newStatus = hasDiscount ? 'pending_approval' : 'approved'
+  const hasPriceOverride = (items ?? []).some((i) => i.price_mode === 'override')
+  const newStatus = hasDiscount || hasPriceOverride ? 'pending_approval' : 'approved'
 
   const { error } = await supabase
     .from('pedidos')

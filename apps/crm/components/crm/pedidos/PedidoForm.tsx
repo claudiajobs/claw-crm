@@ -32,6 +32,7 @@ interface PedidoFormProps {
   allContacts: PrefetchedContact[]
   allVariants: PrefetchedVariant[]
   priceMap: Record<string, number>
+  isAdmin: boolean
 }
 
 interface SelectedContact {
@@ -39,6 +40,8 @@ interface SelectedContact {
   name: string
   tier: string | null
 }
+
+type PriceMode = 'tier' | 'override'
 
 interface CartItem {
   variantId: string
@@ -49,6 +52,8 @@ interface CartItem {
   unit: string
   unitPrice: number
   discountPct: number
+  priceMode: PriceMode
+  tierSlug: string
 }
 
 const MAX_DROPDOWN_ITEMS = 50
@@ -74,6 +79,7 @@ export default function PedidoForm({
   allContacts,
   allVariants,
   priceMap,
+  isAdmin,
 }: PedidoFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -246,7 +252,9 @@ export default function PedidoForm({
   }
 
   const handleAddToCart = useCallback(() => {
-    if (!selectedVariant || quantity < 1 || variantPrice === null) return
+    if (!selectedVariant || quantity < 1) return
+    // Non-admins can only add items that have a tier price configured.
+    if (variantPrice === null && !isAdmin) return
 
     setCart((prev) => [
       ...prev,
@@ -257,15 +265,18 @@ export default function PedidoForm({
         sku: selectedVariant.sku,
         quantity,
         unit: selectedVariant.unit,
-        unitPrice: variantPrice,
+        unitPrice: variantPrice ?? 0,
         discountPct: 0,
+        // Fall back to manual override when no tier price exists (admin only)
+        priceMode: variantPrice === null ? 'override' : 'tier',
+        tierSlug: effectiveTier,
       },
     ])
     setSelectedVariant(null)
     setProductSearch('')
     setVariantPrice(null)
     setQuantity(1)
-  }, [selectedVariant, quantity, variantPrice])
+  }, [selectedVariant, quantity, variantPrice, isAdmin, effectiveTier])
 
   function handleRemoveFromCart(index: number) {
     setCart((prev) => prev.filter((_, i) => i !== index))
@@ -284,6 +295,40 @@ export default function PedidoForm({
     setCart((prev) =>
       prev.map((item, i) =>
         i === index ? { ...item, quantity: Math.max(1, value) } : item
+      )
+    )
+  }
+
+  function tierName(slug: string): string {
+    return tiers.find((t) => t.slug === slug)?.name ?? slug
+  }
+
+  function handlePriceModeChange(index: number, mode: PriceMode) {
+    setCart((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item
+        if (mode === 'tier') {
+          // Restore the tier price for this item's tier. If no tier price
+          // exists, stay in override mode — switching to tier here would make
+          // the server-side getPrice() throw and fail the whole pedido.
+          const tierPrice = lookupPrice(item.variantId, item.tierSlug)
+          if (tierPrice === null) return item
+          return {
+            ...item,
+            priceMode: 'tier',
+            unitPrice: tierPrice,
+          }
+        }
+        // Switching to manual keeps the current value as the starting point
+        return { ...item, priceMode: 'override' }
+      })
+    )
+  }
+
+  function handleOverridePriceChange(index: number, value: number) {
+    setCart((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, unitPrice: Math.max(0, value) } : item
       )
     )
   }
@@ -318,8 +363,10 @@ export default function PedidoForm({
           await addItem(pedido.id, {
             variantId: item.variantId,
             quantity: item.quantity,
-            membershipTier: effectiveTier,
+            membershipTier: item.tierSlug,
             discountPct: item.discountPct > 0 ? item.discountPct : undefined,
+            priceMode: item.priceMode,
+            overridePrice: item.priceMode === 'override' ? item.unitPrice : undefined,
           })
         }
 
@@ -662,7 +709,7 @@ export default function PedidoForm({
             type="button"
             className="btn btn-primary"
             onClick={handleAddToCart}
-            disabled={!selectedVariant || variantPrice === null}
+            disabled={!selectedVariant || (variantPrice === null && !isAdmin)}
           >
             Adicionar
           </button>
@@ -676,6 +723,7 @@ export default function PedidoForm({
                 <tr>
                   <th>Produto</th>
                   <th style={{ textAlign: 'right' }}>Qtd</th>
+                  <th style={{ textAlign: 'left', minWidth: 140 }}>Modo de preço</th>
                   <th style={{ textAlign: 'right' }}>Preço unit.</th>
                   <th style={{ textAlign: 'center', width: 80 }}>Desc %</th>
                   <th style={{ textAlign: 'right' }}>Subtotal</th>
@@ -695,8 +743,42 @@ export default function PedidoForm({
                     <td style={{ textAlign: 'right' }}>
                       {item.quantity} {item.unit}
                     </td>
+                    <td>
+                      {isAdmin ? (
+                        <select
+                          className="input"
+                          value={item.priceMode}
+                          onChange={(e) => handlePriceModeChange(idx, e.target.value as PriceMode)}
+                          style={{ fontSize: 12, padding: '2px 6px', height: 28, width: '100%', minWidth: 130 }}
+                        >
+                          {/* Tier disabled when no configured price — prevents a
+                              submit that would throw server-side in getPrice() */}
+                          <option value="tier" disabled={lookupPrice(item.variantId, item.tierSlug) === null}>
+                            {tierName(item.tierSlug)}
+                          </option>
+                          <option value="override">Preço manual</option>
+                        </select>
+                      ) : (
+                        <span style={{ fontSize: 12, color: 'var(--color-gray-500)' }}>
+                          {tierName(item.tierSlug)}
+                        </span>
+                      )}
+                    </td>
                     <td style={{ textAlign: 'right', fontFamily: 'monospace', fontSize: 13 }}>
-                      R$ {item.unitPrice.toFixed(2)}
+                      {item.priceMode === 'override' ? (
+                        <input
+                          type="number"
+                          className="input"
+                          min={0}
+                          step="0.01"
+                          value={item.unitPrice}
+                          onChange={(e) => handleOverridePriceChange(idx, Number(e.target.value))}
+                          aria-label="Preço manual (R$)"
+                          style={{ width: 90, textAlign: 'right', fontSize: 12, padding: '2px 6px', height: 28, fontFamily: 'monospace' }}
+                        />
+                      ) : (
+                        <>R$ {item.unitPrice.toFixed(2)}</>
+                      )}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <input
@@ -772,9 +854,14 @@ export default function PedidoForm({
         <MobileItemDrawer
           item={cart[drawerItemIndex]}
           index={drawerItemIndex}
+          isAdmin={isAdmin}
+          tierLabel={tierName(cart[drawerItemIndex].tierSlug)}
+          hasTierPrice={lookupPrice(cart[drawerItemIndex].variantId, cart[drawerItemIndex].tierSlug) !== null}
           onClose={() => setDrawerItemIndex(null)}
           onQuantityChange={handleQuantityChange}
           onDiscountChange={handleDiscountChange}
+          onPriceModeChange={handlePriceModeChange}
+          onOverridePriceChange={handleOverridePriceChange}
           onRemove={handleRemoveFromCart}
           getSubtotal={getSubtotal}
         />
@@ -800,17 +887,27 @@ export default function PedidoForm({
 function MobileItemDrawer({
   item,
   index,
+  isAdmin,
+  tierLabel,
+  hasTierPrice,
   onClose,
   onQuantityChange,
   onDiscountChange,
+  onPriceModeChange,
+  onOverridePriceChange,
   onRemove,
   getSubtotal,
 }: {
   item: CartItem
   index: number
+  isAdmin: boolean
+  tierLabel: string
+  hasTierPrice: boolean
   onClose: () => void
   onQuantityChange: (index: number, value: number) => void
   onDiscountChange: (index: number, value: number) => void
+  onPriceModeChange: (index: number, mode: PriceMode) => void
+  onOverridePriceChange: (index: number, value: number) => void
   onRemove: (index: number) => void
   getSubtotal: (item: CartItem) => number
 }) {
@@ -857,6 +954,38 @@ function MobileItemDrawer({
             <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-gray-500)' }}>SKU</label>
             <p style={{ fontSize: 13, color: 'var(--color-gray-800)', margin: '2px 0 0', fontFamily: 'monospace' }}>{item.sku}</p>
           </div>
+
+          {isAdmin && (
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-gray-500)' }}>Modo de preço</label>
+              <select
+                className="input"
+                value={item.priceMode}
+                onChange={(e) => onPriceModeChange(index, e.target.value as PriceMode)}
+                style={{ marginTop: 4, width: '100%' }}
+              >
+                {/* Tier disabled when no configured price — prevents a submit
+                    that would throw server-side in getPrice() */}
+                <option value="tier" disabled={!hasTierPrice}>{tierLabel}</option>
+                <option value="override">Preço manual</option>
+              </select>
+            </div>
+          )}
+
+          {item.priceMode === 'override' && (
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-gray-500)' }}>Preço manual (R$)</label>
+              <input
+                type="number"
+                className="input"
+                min={0}
+                step="0.01"
+                value={item.unitPrice}
+                onChange={(e) => onOverridePriceChange(index, Number(e.target.value))}
+                style={{ marginTop: 4, width: '100%' }}
+              />
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>

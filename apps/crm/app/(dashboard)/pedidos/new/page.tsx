@@ -18,6 +18,14 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
 
   const svc = createServiceClient()
 
+  // Determine admin — only admins may set a manual price override
+  const { data: profile } = await svc
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const isAdmin = profile?.role === 'admin'
+
   // Pre-fill contact info if provided
   let prefillContact: { id: string; name: string } | null = null
   if (contact_id) {
@@ -139,6 +147,7 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
         allContacts={allContacts}
         allVariants={allVariants}
         priceMap={priceMap}
+        isAdmin={isAdmin}
       />
     </div>
   )
