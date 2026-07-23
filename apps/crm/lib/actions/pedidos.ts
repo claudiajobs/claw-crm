@@ -152,14 +152,15 @@ export async function addItem(pedidoId: string, item: AddItemData) {
 export async function submitPedido(pedidoId: string) {
   const supabase = createServiceClient()
 
-  // Check if any item has discount
+  // Check if any item has discount or a price override
   const { data: items } = await supabase
     .from('pedido_items')
-    .select('discount_pct')
+    .select('discount_pct, price_mode')
     .eq('pedido_id', pedidoId)
 
   const hasDiscount = (items ?? []).some((i) => Number(i.discount_pct) > 0)
-  const newStatus = hasDiscount ? 'pending_approval' : 'approved'
+  const hasPriceOverride = (items ?? []).some((i) => i.price_mode === 'override')
+  const newStatus = hasDiscount || hasPriceOverride ? 'pending_approval' : 'approved'
 
   const { error } = await supabase
     .from('pedidos')
