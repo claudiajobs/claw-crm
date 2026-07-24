@@ -25,6 +25,7 @@ export default function PricingGrid({ grid }: PricingGridProps) {
   const router = useRouter()
   const [draft, setDraft] = useState<Draft>({})
   const [savingPrices, startSaveTransition] = useTransition()
+  const [, startNameTransition] = useTransition()
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   // Draft product names keyed by productId — only holds the one being edited
@@ -134,7 +135,7 @@ export default function PricingGrid({ grid }: PricingGridProps) {
 
     setMessage(null)
     setSavingNameId(productId)
-    startSaveTransition(async () => {
+    startNameTransition(async () => {
       try {
         await updateProductName(productId, trimmed)
         setNameDraft((prev) => {
@@ -220,6 +221,7 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                     type="text"
                     className="input"
                     aria-label="Nome do produto"
+                    maxLength={120}
                     value={nameDraft[prod.id] ?? prod.name}
                     disabled={savingNameId === prod.id}
                     onChange={(e) =>

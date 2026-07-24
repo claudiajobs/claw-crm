@@ -190,6 +190,9 @@ export async function updateProductName(productId: string, name: string): Promis
   if (trimmed === '') {
     throw new Error('Nome do produto não pode ser vazio')
   }
+  if (trimmed.length > 120) {
+    throw new Error('Nome do produto não pode ter mais de 120 caracteres')
+  }
 
   const svc = createServiceClient()
   const { error } = await svc
