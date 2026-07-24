@@ -183,6 +183,32 @@ export async function savePricingGrid(changes: PriceChange[]) {
   return { success: true, inserted: rows.length }
 }
 
+export async function updateProductName(productId: string, name: string): Promise<void> {
+  await requireAdmin()
+
+  const trimmed = name.trim()
+  if (trimmed === '') {
+    throw new Error('Nome do produto não pode ser vazio')
+  }
+  if (trimmed.length > 120) {
+    throw new Error('Nome do produto não pode ter mais de 120 caracteres')
+  }
+
+  const svc = createServiceClient()
+  const { error } = await svc
+    .from('products')
+    .update({ name: trimmed })
+    .eq('id', productId)
+
+  if (error) {
+    // Log raw detail server-side; surface a clean PT-BR message to the user.
+    console.error('[updateProductName] update failed:', error)
+    throw new Error('Não foi possível atualizar o nome do produto. Tente novamente.')
+  }
+
+  revalidatePath('/settings/pricing')
+}
+
 export async function toggleProductActive(productId: string, active: boolean) {
   await requireAdmin()
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import {
   savePricingGrid,
   toggleProductActive,
+  updateProductName,
   type PricingGrid as PricingGridData,
   type PriceChange,
 } from '@/lib/actions/pricing'
@@ -24,8 +25,12 @@ export default function PricingGrid({ grid }: PricingGridProps) {
   const router = useRouter()
   const [draft, setDraft] = useState<Draft>({})
   const [savingPrices, startSaveTransition] = useTransition()
+  const [, startNameTransition] = useTransition()
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  // Draft product names keyed by productId — only holds the one being edited
+  const [nameDraft, setNameDraft] = useState<Record<string, string>>({})
+  const [savingNameId, setSavingNameId] = useState<string | null>(null)
 
   const { tiers, categories } = grid
 
@@ -100,6 +105,57 @@ export default function PricingGrid({ grid }: PricingGridProps) {
     })
   }
 
+  function handleNameBlur(productId: string, currentName: string) {
+    const draft = nameDraft[productId]
+    // Nothing typed / never edited this cell
+    if (draft === undefined) return
+
+    const trimmed = draft.trim()
+
+    // Empty is invalid — warn and revert to the stored name
+    if (trimmed === '') {
+      setMessage({ type: 'err', text: 'Nome do produto não pode ser vazio' })
+      setNameDraft((prev) => {
+        const next = { ...prev }
+        delete next[productId]
+        return next
+      })
+      return
+    }
+
+    // Unchanged — just drop the draft, no write
+    if (trimmed === currentName) {
+      setNameDraft((prev) => {
+        const next = { ...prev }
+        delete next[productId]
+        return next
+      })
+      return
+    }
+
+    setMessage(null)
+    setSavingNameId(productId)
+    startNameTransition(async () => {
+      try {
+        await updateProductName(productId, trimmed)
+        setNameDraft((prev) => {
+          const next = { ...prev }
+          delete next[productId]
+          return next
+        })
+        setMessage({ type: 'ok', text: 'Nome do produto atualizado.' })
+        router.refresh()
+      } catch (err) {
+        setMessage({
+          type: 'err',
+          text: err instanceof Error ? err.message : 'Erro ao atualizar produto.',
+        })
+      } finally {
+        setSavingNameId(null)
+      }
+    })
+  }
+
   function handleToggle(productId: string, nextActive: boolean) {
     setTogglingId(productId)
     setMessage(null)
@@ -161,9 +217,52 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-gray-800)' }}>
-                    {prod.name}
-                  </span>
+                  <input
+                    type="text"
+                    className="input"
+                    aria-label="Nome do produto"
+                    maxLength={120}
+                    value={nameDraft[prod.id] ?? prod.name}
+                    disabled={savingNameId === prod.id}
+                    onChange={(e) =>
+                      setNameDraft((prev) => ({ ...prev, [prod.id]: e.target.value }))
+                    }
+                    onBlur={() => handleNameBlur(prod.id, prod.name)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') e.currentTarget.blur()
+                      if (e.key === 'Escape') {
+                        setNameDraft((prev) => {
+                          const next = { ...prev }
+                          delete next[prod.id]
+                          return next
+                        })
+                        e.currentTarget.blur()
+                      }
+                    }}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: 'var(--color-gray-800)',
+                      padding: '2px 6px',
+                      height: 28,
+                      minWidth: 180,
+                      borderColor:
+                        nameDraft[prod.id] !== undefined &&
+                        nameDraft[prod.id] !== prod.name
+                          ? 'var(--color-primary)'
+                          : 'transparent',
+                      background:
+                        nameDraft[prod.id] !== undefined &&
+                        nameDraft[prod.id] !== prod.name
+                          ? 'rgba(91,71,224,0.06)'
+                          : 'transparent',
+                    }}
+                  />
+                  {savingNameId === prod.id && (
+                    <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
+                      salvando...
+                    </span>
+                  )}
                   <span className={prod.active ? 'badge badge-sq badge-teal' : 'badge badge-sq badge-gray'}>
                     {prod.active ? 'Ativo' : 'Inativo'}
                   </span>
