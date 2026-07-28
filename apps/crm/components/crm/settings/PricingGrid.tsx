@@ -2,9 +2,8 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { IconPlus, IconTrash } from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 import {
-  deactivateProduct,
   savePricingGrid,
   toggleProductActive,
   updateCategoryName,
@@ -223,7 +222,7 @@ export default function PricingGrid({ grid }: PricingGridProps) {
     setMessage(null)
     startNameTransition(async () => {
       try {
-        await deactivateProduct(confirmProduct.id)
+        await toggleProductActive(confirmProduct.id, false)
         setConfirmProduct(null)
         setMessage({ type: 'ok', text: 'Produto desativado.' })
         router.refresh()
@@ -292,9 +291,52 @@ export default function PricingGrid({ grid }: PricingGridProps) {
 
       {categories.map((cat) => (
         <div key={cat.id} className="card">
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 16 }}>
-            {cat.name}
-          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <input
+              type="text"
+              className="input"
+              aria-label="Nome da categoria"
+              maxLength={120}
+              value={catDraft[cat.id] ?? cat.name}
+              disabled={savingCatId === cat.id}
+              onChange={(e) =>
+                setCatDraft((prev) => ({ ...prev, [cat.id]: e.target.value }))
+              }
+              onBlur={() => handleCategoryBlur(cat.id, cat.name)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur()
+                if (e.key === 'Escape') {
+                  setCatDraft((prev) => {
+                    const next = { ...prev }
+                    delete next[cat.id]
+                    return next
+                  })
+                  e.currentTarget.blur()
+                }
+              }}
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: 'var(--color-gray-800)',
+                padding: '2px 6px',
+                height: 28,
+                minWidth: 180,
+                borderColor:
+                  catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
+                    ? 'var(--color-primary)'
+                    : 'transparent',
+                background:
+                  catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
+                    ? 'rgba(91,71,224,0.06)'
+                    : 'transparent',
+              }}
+            />
+            {savingCatId === cat.id && (
+              <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
+                salvando...
+              </span>
+            )}
+          </div>
 
           {cat.products.map((prod) => (
             <div key={prod.id} style={{ marginBottom: 20 }}>
@@ -307,7 +349,6 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                   marginBottom: 8,
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input
                     type="text"
@@ -360,58 +401,15 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <input
-                    type="text"
-                    className="input"
-                    aria-label="Nome da categoria"
-                    maxLength={120}
-                    value={catDraft[cat.id] ?? cat.name}
-                    disabled={savingCatId === cat.id}
-                    onChange={(e) =>
-                      setCatDraft((prev) => ({ ...prev, [cat.id]: e.target.value }))
-                    }
-                    onBlur={() => handleCategoryBlur(cat.id, cat.name)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') e.currentTarget.blur()
-                      if (e.key === 'Escape') {
-                        setCatDraft((prev) => {
-                          const next = { ...prev }
-                          delete next[cat.id]
-                          return next
-                        })
-                        e.currentTarget.blur()
-                      }
-                    }}
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--color-gray-400)',
-                      padding: '1px 6px',
-                      height: 22,
-                      minWidth: 180,
-                      borderColor:
-                        catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
-                          ? 'var(--color-primary)'
-                          : 'transparent',
-                      background:
-                        catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
-                          ? 'rgba(91,71,224,0.06)'
-                          : 'transparent',
-                    }}
-                  />
-                  {savingCatId === cat.id && (
-                    <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
-                      salvando...
-                    </span>
-                  )}
-                </div>
-                </div>
-
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button
                     type="button"
                     className={prod.active ? 'btn btn-ghost' : 'btn btn-primary'}
-                    onClick={() => handleToggle(prod.id, !prod.active)}
+                    onClick={() =>
+                      prod.active
+                        ? setConfirmProduct({ id: prod.id, name: prod.name })
+                        : handleToggle(prod.id, true)
+                    }
                     disabled={savingPrices && togglingId === prod.id}
                     style={{ fontSize: 12, padding: '4px 12px', height: 28 }}
                   >
@@ -421,18 +419,6 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                         ? 'Desativar'
                         : 'Ativar'}
                   </button>
-                  {prod.active && (
-                    <button
-                      type="button"
-                      className="btn-icon"
-                      onClick={() => setConfirmProduct({ id: prod.id, name: prod.name })}
-                      aria-label={`Desativar produto ${prod.name}`}
-                      title="Desativar produto"
-                      style={{ color: 'var(--color-danger)' }}
-                    >
-                      <IconTrash size={16} stroke={1.5} />
-                    </button>
-                  )}
                 </div>
               </div>
 

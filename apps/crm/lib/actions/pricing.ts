@@ -400,24 +400,6 @@ export async function createProduct(data: CreateProductData): Promise<{ id: stri
   return { id: productId }
 }
 
-export async function deactivateProduct(productId: string): Promise<void> {
-  await requireAdmin()
-
-  const svc = createServiceClient()
-  const { error } = await svc
-    .from('products')
-    .update({ active: false })
-    .eq('id', productId)
-
-  if (error) {
-    // Log raw detail server-side; surface a clean PT-BR message to the user.
-    console.error('[deactivateProduct] update failed:', error)
-    throw new Error('Não foi possível desativar o produto. Tente novamente.')
-  }
-
-  revalidatePath('/settings/pricing')
-}
-
 export async function updateCategoryName(categoryId: string, name: string): Promise<void> {
   await requireAdmin()
 

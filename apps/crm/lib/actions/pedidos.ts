@@ -102,6 +102,21 @@ export async function createPedido(data: CreatePedidoData) {
 export async function addItem(pedidoId: string, item: AddItemData) {
   const supabase = createServiceClient()
 
+  // The UI only offers active products, but a vendedor could call this action
+  // directly with a deactivated product's variant — enforce it server-side.
+  const { data: variantRow, error: variantError } = await supabase
+    .from('product_variants')
+    .select('active, products(active)')
+    .eq('id', item.variantId)
+    .single()
+
+  const variantProduct = Array.isArray(variantRow?.products)
+    ? variantRow?.products[0]
+    : variantRow?.products
+  if (variantError || !variantRow || !variantRow.active || !variantProduct?.active) {
+    throw new Error('Este produto não está mais disponível.')
+  }
+
   const priceMode = item.priceMode ?? 'tier'
 
   // Price: manual override skips the pricing engine; tier mode looks it up.
