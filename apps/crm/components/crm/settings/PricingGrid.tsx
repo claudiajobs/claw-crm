@@ -2,13 +2,17 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { IconPlus, IconTrash } from '@tabler/icons-react'
 import {
+  deactivateProduct,
   savePricingGrid,
   toggleProductActive,
+  updateCategoryName,
   updateProductName,
   type PricingGrid as PricingGridData,
   type PriceChange,
 } from '@/lib/actions/pricing'
+import CreateProductModal from './CreateProductModal'
 
 interface PricingGridProps {
   grid: PricingGridData
@@ -31,8 +35,15 @@ export default function PricingGrid({ grid }: PricingGridProps) {
   // Draft product names keyed by productId — only holds the one being edited
   const [nameDraft, setNameDraft] = useState<Record<string, string>>({})
   const [savingNameId, setSavingNameId] = useState<string | null>(null)
+  // Draft category names keyed by categoryId — same blur-to-save pattern
+  const [catDraft, setCatDraft] = useState<Record<string, string>>({})
+  const [savingCatId, setSavingCatId] = useState<string | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  // Product awaiting the "Desativar produto?" confirmation
+  const [confirmProduct, setConfirmProduct] = useState<{ id: string; name: string } | null>(null)
+  const [deactivating, setDeactivating] = useState(false)
 
-  const { tiers, categories } = grid
+  const { tiers, categories, allCategories } = grid
 
   // Build the list of changed cells (draft value differs from the current price)
   const changes: PriceChange[] = useMemo(() => {
@@ -156,6 +167,77 @@ export default function PricingGrid({ grid }: PricingGridProps) {
     })
   }
 
+  function handleCategoryBlur(categoryId: string, currentName: string) {
+    const draft = catDraft[categoryId]
+    if (draft === undefined) return
+
+    const trimmed = draft.trim()
+
+    // Empty is invalid — warn and revert to the stored name
+    if (trimmed === '') {
+      setMessage({ type: 'err', text: 'Nome da categoria não pode ser vazio' })
+      setCatDraft((prev) => {
+        const next = { ...prev }
+        delete next[categoryId]
+        return next
+      })
+      return
+    }
+
+    // Unchanged — just drop the draft, no write
+    if (trimmed === currentName) {
+      setCatDraft((prev) => {
+        const next = { ...prev }
+        delete next[categoryId]
+        return next
+      })
+      return
+    }
+
+    setMessage(null)
+    setSavingCatId(categoryId)
+    startNameTransition(async () => {
+      try {
+        await updateCategoryName(categoryId, trimmed)
+        setCatDraft((prev) => {
+          const next = { ...prev }
+          delete next[categoryId]
+          return next
+        })
+        setMessage({ type: 'ok', text: 'Nome da categoria atualizado.' })
+        router.refresh()
+      } catch (err) {
+        setMessage({
+          type: 'err',
+          text: err instanceof Error ? err.message : 'Erro ao atualizar categoria.',
+        })
+      } finally {
+        setSavingCatId(null)
+      }
+    })
+  }
+
+  function handleDeactivate() {
+    if (!confirmProduct) return
+    setDeactivating(true)
+    setMessage(null)
+    startNameTransition(async () => {
+      try {
+        await deactivateProduct(confirmProduct.id)
+        setConfirmProduct(null)
+        setMessage({ type: 'ok', text: 'Produto desativado.' })
+        router.refresh()
+      } catch (err) {
+        setMessage({
+          type: 'err',
+          text: err instanceof Error ? err.message : 'Erro ao desativar produto.',
+        })
+      } finally {
+        setDeactivating(false)
+      }
+    })
+  }
+
   function handleToggle(productId: string, nextActive: boolean) {
     setTogglingId(productId)
     setMessage(null)
@@ -174,18 +256,27 @@ export default function PricingGrid({ grid }: PricingGridProps) {
     })
   }
 
-  if (categories.length === 0) {
-    return (
-      <div className="card">
-        <p style={{ fontSize: 13, color: 'var(--color-gray-500)' }}>
-          Nenhum produto com variantes ativas encontrado.
-        </p>
-      </div>
-    )
-  }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 80 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setShowCreateModal(true)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          <IconPlus size={16} stroke={1.5} /> Novo produto
+        </button>
+      </div>
+
+      {categories.length === 0 && (
+        <div className="card">
+          <p style={{ fontSize: 13, color: 'var(--color-gray-500)' }}>
+            Nenhum produto com variantes ativas encontrado.
+          </p>
+        </div>
+      )}
+
       {message && (
         <div
           className="card"
@@ -216,6 +307,7 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                   marginBottom: 8,
                 }}
               >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <input
                     type="text"
@@ -268,19 +360,80 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  className={prod.active ? 'btn btn-ghost' : 'btn btn-primary'}
-                  onClick={() => handleToggle(prod.id, !prod.active)}
-                  disabled={savingPrices && togglingId === prod.id}
-                  style={{ fontSize: 12, padding: '4px 12px', height: 28 }}
-                >
-                  {togglingId === prod.id
-                    ? '...'
-                    : prod.active
-                      ? 'Desativar'
-                      : 'Ativar'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <input
+                    type="text"
+                    className="input"
+                    aria-label="Nome da categoria"
+                    maxLength={120}
+                    value={catDraft[cat.id] ?? cat.name}
+                    disabled={savingCatId === cat.id}
+                    onChange={(e) =>
+                      setCatDraft((prev) => ({ ...prev, [cat.id]: e.target.value }))
+                    }
+                    onBlur={() => handleCategoryBlur(cat.id, cat.name)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') e.currentTarget.blur()
+                      if (e.key === 'Escape') {
+                        setCatDraft((prev) => {
+                          const next = { ...prev }
+                          delete next[cat.id]
+                          return next
+                        })
+                        e.currentTarget.blur()
+                      }
+                    }}
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--color-gray-400)',
+                      padding: '1px 6px',
+                      height: 22,
+                      minWidth: 180,
+                      borderColor:
+                        catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
+                          ? 'var(--color-primary)'
+                          : 'transparent',
+                      background:
+                        catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
+                          ? 'rgba(91,71,224,0.06)'
+                          : 'transparent',
+                    }}
+                  />
+                  {savingCatId === cat.id && (
+                    <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
+                      salvando...
+                    </span>
+                  )}
+                </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    type="button"
+                    className={prod.active ? 'btn btn-ghost' : 'btn btn-primary'}
+                    onClick={() => handleToggle(prod.id, !prod.active)}
+                    disabled={savingPrices && togglingId === prod.id}
+                    style={{ fontSize: 12, padding: '4px 12px', height: 28 }}
+                  >
+                    {togglingId === prod.id
+                      ? '...'
+                      : prod.active
+                        ? 'Desativar'
+                        : 'Ativar'}
+                  </button>
+                  {prod.active && (
+                    <button
+                      type="button"
+                      className="btn-icon"
+                      onClick={() => setConfirmProduct({ id: prod.id, name: prod.name })}
+                      aria-label={`Desativar produto ${prod.name}`}
+                      title="Desativar produto"
+                      style={{ color: 'var(--color-danger)' }}
+                    >
+                      <IconTrash size={16} stroke={1.5} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
@@ -375,6 +528,52 @@ export default function PricingGrid({ grid }: PricingGridProps) {
           {savingPrices ? 'Salvando...' : 'Salvar alterações'}
         </button>
       </div>
+
+      {showCreateModal && (
+        <CreateProductModal
+          tiers={tiers}
+          categories={allCategories}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false)
+            setMessage({ type: 'ok', text: 'Produto criado com sucesso.' })
+            router.refresh()
+          }}
+        />
+      )}
+
+      {confirmProduct && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: 400, margin: 16, borderRadius: 'var(--radius-xl)' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 8 }}>
+              Desativar produto?
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--color-gray-600)', marginBottom: 20 }}>
+              Este produto não aparecerá mais em novos pedidos. Pedidos
+              existentes não são afetados.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setConfirmProduct(null)}
+                disabled={deactivating}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleDeactivate}
+                disabled={deactivating}
+                style={{ background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+              >
+                {deactivating ? 'Desativando...' : 'Desativar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
