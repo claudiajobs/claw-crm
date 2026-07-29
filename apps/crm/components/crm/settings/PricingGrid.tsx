@@ -2,16 +2,15 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { IconPlus } from '@tabler/icons-react'
+import { IconPencil, IconPlus } from '@tabler/icons-react'
 import {
   savePricingGrid,
   toggleProductActive,
-  updateCategoryName,
-  updateProductName,
   type PricingGrid as PricingGridData,
   type PriceChange,
 } from '@/lib/actions/pricing'
 import CreateProductModal from './CreateProductModal'
+import EditProductModal from './EditProductModal'
 
 interface PricingGridProps {
   grid: PricingGridData
@@ -28,16 +27,16 @@ export default function PricingGrid({ grid }: PricingGridProps) {
   const router = useRouter()
   const [draft, setDraft] = useState<Draft>({})
   const [savingPrices, startSaveTransition] = useTransition()
-  const [, startNameTransition] = useTransition()
+  const [, startDeactivateTransition] = useTransition()
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
-  // Draft product names keyed by productId — only holds the one being edited
-  const [nameDraft, setNameDraft] = useState<Record<string, string>>({})
-  const [savingNameId, setSavingNameId] = useState<string | null>(null)
-  // Draft category names keyed by categoryId — same blur-to-save pattern
-  const [catDraft, setCatDraft] = useState<Record<string, string>>({})
-  const [savingCatId, setSavingCatId] = useState<string | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  // Product being edited in the "Editar produto" modal
+  const [editProduct, setEditProduct] = useState<{
+    id: string
+    name: string
+    categoryId: string
+  } | null>(null)
   // Product awaiting the "Desativar produto?" confirmation
   const [confirmProduct, setConfirmProduct] = useState<{ id: string; name: string } | null>(null)
   const [deactivating, setDeactivating] = useState(false)
@@ -115,112 +114,11 @@ export default function PricingGrid({ grid }: PricingGridProps) {
     })
   }
 
-  function handleNameBlur(productId: string, currentName: string) {
-    const draft = nameDraft[productId]
-    // Nothing typed / never edited this cell
-    if (draft === undefined) return
-
-    const trimmed = draft.trim()
-
-    // Empty is invalid — warn and revert to the stored name
-    if (trimmed === '') {
-      setMessage({ type: 'err', text: 'Nome do produto não pode ser vazio' })
-      setNameDraft((prev) => {
-        const next = { ...prev }
-        delete next[productId]
-        return next
-      })
-      return
-    }
-
-    // Unchanged — just drop the draft, no write
-    if (trimmed === currentName) {
-      setNameDraft((prev) => {
-        const next = { ...prev }
-        delete next[productId]
-        return next
-      })
-      return
-    }
-
-    setMessage(null)
-    setSavingNameId(productId)
-    startNameTransition(async () => {
-      try {
-        await updateProductName(productId, trimmed)
-        setNameDraft((prev) => {
-          const next = { ...prev }
-          delete next[productId]
-          return next
-        })
-        setMessage({ type: 'ok', text: 'Nome do produto atualizado.' })
-        router.refresh()
-      } catch (err) {
-        setMessage({
-          type: 'err',
-          text: err instanceof Error ? err.message : 'Erro ao atualizar produto.',
-        })
-      } finally {
-        setSavingNameId(null)
-      }
-    })
-  }
-
-  function handleCategoryBlur(categoryId: string, currentName: string) {
-    const draft = catDraft[categoryId]
-    if (draft === undefined) return
-
-    const trimmed = draft.trim()
-
-    // Empty is invalid — warn and revert to the stored name
-    if (trimmed === '') {
-      setMessage({ type: 'err', text: 'Nome da categoria não pode ser vazio' })
-      setCatDraft((prev) => {
-        const next = { ...prev }
-        delete next[categoryId]
-        return next
-      })
-      return
-    }
-
-    // Unchanged — just drop the draft, no write
-    if (trimmed === currentName) {
-      setCatDraft((prev) => {
-        const next = { ...prev }
-        delete next[categoryId]
-        return next
-      })
-      return
-    }
-
-    setMessage(null)
-    setSavingCatId(categoryId)
-    startNameTransition(async () => {
-      try {
-        await updateCategoryName(categoryId, trimmed)
-        setCatDraft((prev) => {
-          const next = { ...prev }
-          delete next[categoryId]
-          return next
-        })
-        setMessage({ type: 'ok', text: 'Nome da categoria atualizado.' })
-        router.refresh()
-      } catch (err) {
-        setMessage({
-          type: 'err',
-          text: err instanceof Error ? err.message : 'Erro ao atualizar categoria.',
-        })
-      } finally {
-        setSavingCatId(null)
-      }
-    })
-  }
-
   function handleDeactivate() {
     if (!confirmProduct) return
     setDeactivating(true)
     setMessage(null)
-    startNameTransition(async () => {
+    startDeactivateTransition(async () => {
       try {
         await toggleProductActive(confirmProduct.id, false)
         setConfirmProduct(null)
@@ -291,52 +189,16 @@ export default function PricingGrid({ grid }: PricingGridProps) {
 
       {categories.map((cat) => (
         <div key={cat.id} className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <input
-              type="text"
-              className="input"
-              aria-label="Nome da categoria"
-              maxLength={120}
-              value={catDraft[cat.id] ?? cat.name}
-              disabled={savingCatId === cat.id}
-              onChange={(e) =>
-                setCatDraft((prev) => ({ ...prev, [cat.id]: e.target.value }))
-              }
-              onBlur={() => handleCategoryBlur(cat.id, cat.name)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') e.currentTarget.blur()
-                if (e.key === 'Escape') {
-                  setCatDraft((prev) => {
-                    const next = { ...prev }
-                    delete next[cat.id]
-                    return next
-                  })
-                  e.currentTarget.blur()
-                }
-              }}
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: 'var(--color-gray-800)',
-                padding: '2px 6px',
-                height: 28,
-                minWidth: 180,
-                borderColor:
-                  catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
-                    ? 'var(--color-primary)'
-                    : 'transparent',
-                background:
-                  catDraft[cat.id] !== undefined && catDraft[cat.id] !== cat.name
-                    ? 'rgba(91,71,224,0.06)'
-                    : 'transparent',
-              }}
-            />
-            {savingCatId === cat.id && (
-              <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
-                salvando...
-              </span>
-            )}
-          </div>
+          <h3
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--color-gray-500)',
+              marginBottom: 16,
+            }}
+          >
+            {cat.name}
+          </h3>
 
           {cat.products.map((prod) => (
             <div key={prod.id} style={{ marginBottom: 20 }}>
@@ -350,52 +212,25 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input
-                    type="text"
-                    className="input"
-                    aria-label="Nome do produto"
-                    maxLength={120}
-                    value={nameDraft[prod.id] ?? prod.name}
-                    disabled={savingNameId === prod.id}
-                    onChange={(e) =>
-                      setNameDraft((prev) => ({ ...prev, [prod.id]: e.target.value }))
-                    }
-                    onBlur={() => handleNameBlur(prod.id, prod.name)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') e.currentTarget.blur()
-                      if (e.key === 'Escape') {
-                        setNameDraft((prev) => {
-                          const next = { ...prev }
-                          delete next[prod.id]
-                          return next
-                        })
-                        e.currentTarget.blur()
-                      }
-                    }}
+                  <span
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
                       color: 'var(--color-gray-800)',
-                      padding: '2px 6px',
-                      height: 28,
-                      minWidth: 180,
-                      borderColor:
-                        nameDraft[prod.id] !== undefined &&
-                        nameDraft[prod.id] !== prod.name
-                          ? 'var(--color-primary)'
-                          : 'transparent',
-                      background:
-                        nameDraft[prod.id] !== undefined &&
-                        nameDraft[prod.id] !== prod.name
-                          ? 'rgba(91,71,224,0.06)'
-                          : 'transparent',
                     }}
-                  />
-                  {savingNameId === prod.id && (
-                    <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
-                      salvando...
-                    </span>
-                  )}
+                  >
+                    {prod.name}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-icon"
+                    aria-label={`Editar produto ${prod.name}`}
+                    onClick={() =>
+                      setEditProduct({ id: prod.id, name: prod.name, categoryId: cat.id })
+                    }
+                  >
+                    <IconPencil size={14} stroke={1.5} />
+                  </button>
                   <span className={prod.active ? 'badge badge-sq badge-teal' : 'badge badge-sq badge-gray'}>
                     {prod.active ? 'Ativo' : 'Inativo'}
                   </span>
@@ -523,6 +358,19 @@ export default function PricingGrid({ grid }: PricingGridProps) {
           onCreated={() => {
             setShowCreateModal(false)
             setMessage({ type: 'ok', text: 'Produto criado com sucesso.' })
+            router.refresh()
+          }}
+        />
+      )}
+
+      {editProduct && (
+        <EditProductModal
+          product={editProduct}
+          categories={allCategories}
+          onClose={() => setEditProduct(null)}
+          onSaved={() => {
+            setEditProduct(null)
+            setMessage({ type: 'ok', text: 'Produto atualizado.' })
             router.refresh()
           }}
         />

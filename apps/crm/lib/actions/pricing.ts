@@ -426,6 +426,70 @@ export async function updateCategoryName(categoryId: string, name: string): Prom
   revalidatePath('/settings/pricing')
 }
 
+export async function createCategory(name: string): Promise<{ id: string }> {
+  await requireAdmin()
+
+  const trimmed = name.trim()
+  if (trimmed === '') {
+    throw new Error('Nome da categoria não pode ser vazio')
+  }
+  if (trimmed.length > 120) {
+    throw new Error('Nome da categoria não pode ter mais de 120 caracteres')
+  }
+
+  const svc = createServiceClient()
+  const slug = await uniqueSlug(svc, 'product_categories', trimmed, 'categoria')
+  const { data: maxRow } = await svc
+    .from('product_categories')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const { data: cat, error } = await svc
+    .from('product_categories')
+    .insert({
+      name: trimmed,
+      slug,
+      sort_order: ((maxRow?.sort_order as number) ?? 0) + 1,
+    })
+    .select('id')
+    .single()
+
+  if (error || !cat) {
+    // Log raw detail server-side; surface a clean PT-BR message to the user.
+    console.error('[createCategory] insert failed:', error)
+    throw new Error('Não foi possível criar a categoria. Tente novamente.')
+  }
+
+  revalidatePath('/settings/pricing')
+  return { id: cat.id as string }
+}
+
+export async function updateProductCategory(
+  productId: string,
+  categoryId: string
+): Promise<void> {
+  await requireAdmin()
+
+  if (!categoryId || categoryId.trim() === '') {
+    throw new Error('Categoria é obrigatória')
+  }
+
+  const svc = createServiceClient()
+  const { error } = await svc
+    .from('products')
+    .update({ category_id: categoryId })
+    .eq('id', productId)
+
+  if (error) {
+    // Log raw detail server-side; surface a clean PT-BR message to the user.
+    console.error('[updateProductCategory] update failed:', error)
+    throw new Error('Não foi possível atualizar a categoria do produto. Tente novamente.')
+  }
+
+  revalidatePath('/settings/pricing')
+}
+
 export async function toggleProductActive(productId: string, active: boolean) {
   await requireAdmin()
 
