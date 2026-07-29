@@ -212,32 +212,6 @@ export async function savePricingGrid(changes: PriceChange[]) {
   return { success: true, inserted: rows.length }
 }
 
-export async function updateProductName(productId: string, name: string): Promise<void> {
-  await requireAdmin()
-
-  const trimmed = name.trim()
-  if (trimmed === '') {
-    throw new Error('Nome do produto não pode ser vazio')
-  }
-  if (trimmed.length > 120) {
-    throw new Error('Nome do produto não pode ter mais de 120 caracteres')
-  }
-
-  const svc = createServiceClient()
-  const { error } = await svc
-    .from('products')
-    .update({ name: trimmed })
-    .eq('id', productId)
-
-  if (error) {
-    // Log raw detail server-side; surface a clean PT-BR message to the user.
-    console.error('[updateProductName] update failed:', error)
-    throw new Error('Não foi possível atualizar o nome do produto. Tente novamente.')
-  }
-
-  revalidatePath('/settings/pricing')
-}
-
 // ─── Slug helpers ────────────────────────────────────────────────────────────
 
 function slugify(text: string): string {
@@ -397,6 +371,7 @@ export async function createProduct(data: CreateProductData): Promise<{ id: stri
   }
 
   revalidatePath('/settings/pricing')
+  revalidatePath('/pedidos/new')
   return { id: productId }
 }
 
@@ -465,29 +440,82 @@ export async function createCategory(name: string): Promise<{ id: string }> {
   return { id: cat.id as string }
 }
 
-export async function updateProductCategory(
+export async function updateProduct(
   productId: string,
-  categoryId: string
+  data: {
+    name: string
+    categoryId: string
+    newCategoryName?: string
+  }
 ): Promise<void> {
   await requireAdmin()
 
-  if (!categoryId || categoryId.trim() === '') {
+  const name = data.name?.trim() ?? ''
+  if (name === '') {
+    throw new Error('Nome do produto não pode ser vazio')
+  }
+  if (name.length > 120) {
+    throw new Error('Nome do produto não pode ter mais de 120 caracteres')
+  }
+
+  const newCategoryName = data.newCategoryName?.trim() ?? ''
+  if (newCategoryName.length > 120) {
+    throw new Error('Nome da categoria não pode ter mais de 120 caracteres')
+  }
+  if (newCategoryName === '' && (!data.categoryId || data.categoryId.trim() === '')) {
     throw new Error('Categoria é obrigatória')
   }
 
   const svc = createServiceClient()
+
+  // Resolve category — create the new one first when requested
+  let categoryId = data.categoryId
+  let createdCategoryId: string | null = null
+  if (newCategoryName !== '') {
+    const slug = await uniqueSlug(svc, 'product_categories', newCategoryName, 'categoria')
+    const { data: maxRow } = await svc
+      .from('product_categories')
+      .select('sort_order')
+      .order('sort_order', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    const { data: cat, error: catError } = await svc
+      .from('product_categories')
+      .insert({
+        name: newCategoryName,
+        slug,
+        sort_order: ((maxRow?.sort_order as number) ?? 0) + 1,
+      })
+      .select('id')
+      .single()
+    if (catError || !cat) {
+      console.error('[updateProduct] category insert failed:', catError)
+      throw new Error('Não foi possível criar a categoria. Tente novamente.')
+    }
+    categoryId = cat.id as string
+    createdCategoryId = categoryId
+  }
+
+  // Name + category change in a single statement so a failure leaves neither
+  // half applied.
   const { error } = await svc
     .from('products')
-    .update({ category_id: categoryId })
+    .update({ name, category_id: categoryId })
     .eq('id', productId)
 
   if (error) {
+    // Best-effort rollback of the just-created category so a retry doesn't
+    // pile up duplicates (supabase-js has no transactions).
+    if (createdCategoryId) {
+      await svc.from('product_categories').delete().eq('id', createdCategoryId)
+    }
     // Log raw detail server-side; surface a clean PT-BR message to the user.
-    console.error('[updateProductCategory] update failed:', error)
-    throw new Error('Não foi possível atualizar a categoria do produto. Tente novamente.')
+    console.error('[updateProduct] update failed:', error)
+    throw new Error('Não foi possível atualizar o produto. Tente novamente.')
   }
 
   revalidatePath('/settings/pricing')
+  revalidatePath('/pedidos/new')
 }
 
 export async function toggleProductActive(productId: string, active: boolean) {
@@ -506,5 +534,6 @@ export async function toggleProductActive(productId: string, active: boolean) {
   }
 
   revalidatePath('/settings/pricing')
+  revalidatePath('/pedidos/new')
   return { success: true }
 }

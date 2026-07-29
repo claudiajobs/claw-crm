@@ -2,11 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { IconX } from '@tabler/icons-react'
-import {
-  createCategory,
-  updateProductCategory,
-  updateProductName,
-} from '@/lib/actions/pricing'
+import { updateProduct } from '@/lib/actions/pricing'
 
 const NEW_CATEGORY = '__new__'
 
@@ -31,11 +27,11 @@ export default function EditProductModal({
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape' && !isPending) onClose()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  }, [onClose, isPending])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -53,17 +49,12 @@ export default function EditProductModal({
 
     startTransition(async () => {
       try {
-        let targetCategoryId = categoryId
-        if (categoryId === NEW_CATEGORY) {
-          const created = await createCategory(newCategoryName.trim())
-          targetCategoryId = created.id
-        }
-        if (trimmedName !== product.name) {
-          await updateProductName(product.id, trimmedName)
-        }
-        if (targetCategoryId !== product.categoryId) {
-          await updateProductCategory(product.id, targetCategoryId)
-        }
+        const isNewCategory = categoryId === NEW_CATEGORY
+        await updateProduct(product.id, {
+          name: trimmedName,
+          categoryId: isNewCategory ? '' : categoryId,
+          newCategoryName: isNewCategory ? newCategoryName.trim() : undefined,
+        })
         onSaved()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao salvar produto')
@@ -75,7 +66,7 @@ export default function EditProductModal({
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
+        if (e.target === e.currentTarget && !isPending) onClose()
       }}
     >
       <div
@@ -87,7 +78,7 @@ export default function EditProductModal({
           <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-gray-800)' }}>
             Editar produto
           </h2>
-          <button onClick={onClose} className="btn-icon" aria-label="Fechar">
+          <button onClick={onClose} disabled={isPending} className="btn-icon" aria-label="Fechar">
             <IconX size={16} stroke={1.5} />
           </button>
         </div>
@@ -150,7 +141,7 @@ export default function EditProductModal({
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 8 }}>
-            <button type="button" onClick={onClose} className="btn btn-ghost">
+            <button type="button" onClick={onClose} disabled={isPending} className="btn btn-ghost">
               Cancelar
             </button>
             <button
