@@ -2,13 +2,15 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { IconPencil, IconPlus } from '@tabler/icons-react'
 import {
   savePricingGrid,
   toggleProductActive,
-  updateProductName,
   type PricingGrid as PricingGridData,
   type PriceChange,
 } from '@/lib/actions/pricing'
+import CreateProductModal from './CreateProductModal'
+import EditProductModal from './EditProductModal'
 
 interface PricingGridProps {
   grid: PricingGridData
@@ -25,14 +27,21 @@ export default function PricingGrid({ grid }: PricingGridProps) {
   const router = useRouter()
   const [draft, setDraft] = useState<Draft>({})
   const [savingPrices, startSaveTransition] = useTransition()
-  const [, startNameTransition] = useTransition()
+  const [, startDeactivateTransition] = useTransition()
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
-  // Draft product names keyed by productId — only holds the one being edited
-  const [nameDraft, setNameDraft] = useState<Record<string, string>>({})
-  const [savingNameId, setSavingNameId] = useState<string | null>(null)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  // Product being edited in the "Editar produto" modal
+  const [editProduct, setEditProduct] = useState<{
+    id: string
+    name: string
+    categoryId: string
+  } | null>(null)
+  // Product awaiting the "Desativar produto?" confirmation
+  const [confirmProduct, setConfirmProduct] = useState<{ id: string; name: string } | null>(null)
+  const [deactivating, setDeactivating] = useState(false)
 
-  const { tiers, categories } = grid
+  const { tiers, categories, allCategories } = grid
 
   // Build the list of changed cells (draft value differs from the current price)
   const changes: PriceChange[] = useMemo(() => {
@@ -105,53 +114,23 @@ export default function PricingGrid({ grid }: PricingGridProps) {
     })
   }
 
-  function handleNameBlur(productId: string, currentName: string) {
-    const draft = nameDraft[productId]
-    // Nothing typed / never edited this cell
-    if (draft === undefined) return
-
-    const trimmed = draft.trim()
-
-    // Empty is invalid — warn and revert to the stored name
-    if (trimmed === '') {
-      setMessage({ type: 'err', text: 'Nome do produto não pode ser vazio' })
-      setNameDraft((prev) => {
-        const next = { ...prev }
-        delete next[productId]
-        return next
-      })
-      return
-    }
-
-    // Unchanged — just drop the draft, no write
-    if (trimmed === currentName) {
-      setNameDraft((prev) => {
-        const next = { ...prev }
-        delete next[productId]
-        return next
-      })
-      return
-    }
-
+  function handleDeactivate() {
+    if (!confirmProduct) return
+    setDeactivating(true)
     setMessage(null)
-    setSavingNameId(productId)
-    startNameTransition(async () => {
+    startDeactivateTransition(async () => {
       try {
-        await updateProductName(productId, trimmed)
-        setNameDraft((prev) => {
-          const next = { ...prev }
-          delete next[productId]
-          return next
-        })
-        setMessage({ type: 'ok', text: 'Nome do produto atualizado.' })
+        await toggleProductActive(confirmProduct.id, false)
+        setConfirmProduct(null)
+        setMessage({ type: 'ok', text: 'Produto desativado.' })
         router.refresh()
       } catch (err) {
         setMessage({
           type: 'err',
-          text: err instanceof Error ? err.message : 'Erro ao atualizar produto.',
+          text: err instanceof Error ? err.message : 'Erro ao desativar produto.',
         })
       } finally {
-        setSavingNameId(null)
+        setDeactivating(false)
       }
     })
   }
@@ -174,18 +153,27 @@ export default function PricingGrid({ grid }: PricingGridProps) {
     })
   }
 
-  if (categories.length === 0) {
-    return (
-      <div className="card">
-        <p style={{ fontSize: 13, color: 'var(--color-gray-500)' }}>
-          Nenhum produto com variantes ativas encontrado.
-        </p>
-      </div>
-    )
-  }
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 80 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setShowCreateModal(true)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+        >
+          <IconPlus size={16} stroke={1.5} /> Novo produto
+        </button>
+      </div>
+
+      {categories.length === 0 && (
+        <div className="card">
+          <p style={{ fontSize: 13, color: 'var(--color-gray-500)' }}>
+            Nenhum produto com variantes ativas encontrado.
+          </p>
+        </div>
+      )}
+
       {message && (
         <div
           className="card"
@@ -201,7 +189,14 @@ export default function PricingGrid({ grid }: PricingGridProps) {
 
       {categories.map((cat) => (
         <div key={cat.id} className="card">
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 16 }}>
+          <h3
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--color-gray-500)',
+              marginBottom: 16,
+            }}
+          >
             {cat.name}
           </h3>
 
@@ -217,70 +212,49 @@ export default function PricingGrid({ grid }: PricingGridProps) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input
-                    type="text"
-                    className="input"
-                    aria-label="Nome do produto"
-                    maxLength={120}
-                    value={nameDraft[prod.id] ?? prod.name}
-                    disabled={savingNameId === prod.id}
-                    onChange={(e) =>
-                      setNameDraft((prev) => ({ ...prev, [prod.id]: e.target.value }))
-                    }
-                    onBlur={() => handleNameBlur(prod.id, prod.name)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') e.currentTarget.blur()
-                      if (e.key === 'Escape') {
-                        setNameDraft((prev) => {
-                          const next = { ...prev }
-                          delete next[prod.id]
-                          return next
-                        })
-                        e.currentTarget.blur()
-                      }
-                    }}
+                  <span
                     style={{
                       fontSize: 13,
                       fontWeight: 600,
                       color: 'var(--color-gray-800)',
-                      padding: '2px 6px',
-                      height: 28,
-                      minWidth: 180,
-                      borderColor:
-                        nameDraft[prod.id] !== undefined &&
-                        nameDraft[prod.id] !== prod.name
-                          ? 'var(--color-primary)'
-                          : 'transparent',
-                      background:
-                        nameDraft[prod.id] !== undefined &&
-                        nameDraft[prod.id] !== prod.name
-                          ? 'rgba(91,71,224,0.06)'
-                          : 'transparent',
                     }}
-                  />
-                  {savingNameId === prod.id && (
-                    <span style={{ fontSize: 11, color: 'var(--color-gray-400)' }}>
-                      salvando...
-                    </span>
-                  )}
+                  >
+                    {prod.name}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-icon"
+                    aria-label={`Editar produto ${prod.name}`}
+                    onClick={() =>
+                      setEditProduct({ id: prod.id, name: prod.name, categoryId: cat.id })
+                    }
+                  >
+                    <IconPencil size={14} stroke={1.5} />
+                  </button>
                   <span className={prod.active ? 'badge badge-sq badge-teal' : 'badge badge-sq badge-gray'}>
                     {prod.active ? 'Ativo' : 'Inativo'}
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  className={prod.active ? 'btn btn-ghost' : 'btn btn-primary'}
-                  onClick={() => handleToggle(prod.id, !prod.active)}
-                  disabled={savingPrices && togglingId === prod.id}
-                  style={{ fontSize: 12, padding: '4px 12px', height: 28 }}
-                >
-                  {togglingId === prod.id
-                    ? '...'
-                    : prod.active
-                      ? 'Desativar'
-                      : 'Ativar'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    type="button"
+                    className={prod.active ? 'btn btn-ghost' : 'btn btn-primary'}
+                    onClick={() =>
+                      prod.active
+                        ? setConfirmProduct({ id: prod.id, name: prod.name })
+                        : handleToggle(prod.id, true)
+                    }
+                    disabled={savingPrices && togglingId === prod.id}
+                    style={{ fontSize: 12, padding: '4px 12px', height: 28 }}
+                  >
+                    {togglingId === prod.id
+                      ? '...'
+                      : prod.active
+                        ? 'Desativar'
+                        : 'Ativar'}
+                  </button>
+                </div>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
@@ -375,6 +349,65 @@ export default function PricingGrid({ grid }: PricingGridProps) {
           {savingPrices ? 'Salvando...' : 'Salvar alterações'}
         </button>
       </div>
+
+      {showCreateModal && (
+        <CreateProductModal
+          tiers={tiers}
+          categories={allCategories}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={() => {
+            setShowCreateModal(false)
+            setMessage({ type: 'ok', text: 'Produto criado com sucesso.' })
+            router.refresh()
+          }}
+        />
+      )}
+
+      {editProduct && (
+        <EditProductModal
+          product={editProduct}
+          categories={allCategories}
+          onClose={() => setEditProduct(null)}
+          onSaved={() => {
+            setEditProduct(null)
+            setMessage({ type: 'ok', text: 'Produto atualizado.' })
+            router.refresh()
+          }}
+        />
+      )}
+
+      {confirmProduct && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+          <div className="card" style={{ width: '100%', maxWidth: 400, margin: 16, borderRadius: 'var(--radius-xl)' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-gray-800)', marginBottom: 8 }}>
+              Desativar produto?
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--color-gray-600)', marginBottom: 20 }}>
+              Este produto não aparecerá mais em novos pedidos. Pedidos
+              existentes não são afetados.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setConfirmProduct(null)}
+                disabled={deactivating}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleDeactivate}
+                disabled={deactivating}
+                style={{ background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+              >
+                {deactivating ? 'Desativando...' : 'Desativar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -75,8 +75,10 @@ export default async function NewPedidoPage({ searchParams }: NewPedidoPageProps
       .order('first_name'),
     svc
       .from('product_variants')
-      .select('id, name, sku, unit, product_id, products(name)')
+      // Inner join so variants of deactivated products drop out of the form
+      .select('id, name, sku, unit, product_id, products!inner(name, active)')
       .eq('active', true)
+      .eq('products.active', true)
       .order('name'),
     svc
       .from('product_pricing')
