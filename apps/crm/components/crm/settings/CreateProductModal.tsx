@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { IconX, IconPlus, IconTrash } from '@tabler/icons-react'
 import {
   createProduct,
@@ -39,6 +39,14 @@ export default function CreateProductModal({
   const [prices, setPrices] = useState<Record<string, string>>({})
   const [error, setError] = useState('')
   const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && !isPending) onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose, isPending])
 
   function updateVariant(index: number, patch: Partial<VariantRow>) {
     setVariants((prev) => prev.map((v, i) => (i === index ? { ...v, ...patch } : v)))
@@ -122,7 +130,12 @@ export default function CreateProductModal({
   }
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isPending) onClose()
+      }}
+    >
       <div
         className="card"
         style={{ width: '100%', maxWidth: 640, margin: 16, padding: 0, borderRadius: 'var(--radius-xl)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
@@ -132,7 +145,7 @@ export default function CreateProductModal({
           <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-gray-800)' }}>
             Novo produto
           </h2>
-          <button onClick={onClose} className="btn-icon" aria-label="Fechar">
+          <button onClick={onClose} disabled={isPending} className="btn-icon" aria-label="Fechar">
             <IconX size={16} stroke={1.5} />
           </button>
         </div>
@@ -308,7 +321,7 @@ export default function CreateProductModal({
           )}
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 8 }}>
-            <button type="button" onClick={onClose} className="btn btn-ghost">
+            <button type="button" onClick={onClose} disabled={isPending} className="btn btn-ghost">
               Cancelar
             </button>
             <button

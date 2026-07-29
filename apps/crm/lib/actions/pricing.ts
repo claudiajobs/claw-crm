@@ -209,6 +209,7 @@ export async function savePricingGrid(changes: PriceChange[]) {
   }
 
   revalidatePath('/settings/pricing')
+  revalidatePath('/pedidos/new')
   return { success: true, inserted: rows.length }
 }
 
@@ -496,22 +497,33 @@ export async function updateProduct(
     createdCategoryId = categoryId
   }
 
-  // Name + category change in a single statement so a failure leaves neither
-  // half applied.
-  const { error } = await svc
-    .from('products')
-    .update({ name, category_id: categoryId })
-    .eq('id', productId)
-
-  if (error) {
-    // Best-effort rollback of the just-created category so a retry doesn't
-    // pile up duplicates (supabase-js has no transactions).
+  // Best-effort rollback of the just-created category so a retry doesn't
+  // pile up duplicates (supabase-js has no transactions).
+  async function rollbackCategory() {
     if (createdCategoryId) {
       await svc.from('product_categories').delete().eq('id', createdCategoryId)
     }
+  }
+
+  // Name + category change in a single statement so a failure leaves neither
+  // half applied.
+  const { data: updated, error } = await svc
+    .from('products')
+    .update({ name, category_id: categoryId })
+    .eq('id', productId)
+    .select('id')
+
+  if (error) {
+    await rollbackCategory()
     // Log raw detail server-side; surface a clean PT-BR message to the user.
     console.error('[updateProduct] update failed:', error)
     throw new Error('Não foi possível atualizar o produto. Tente novamente.')
+  }
+
+  // 0 rows updated → the product id doesn't exist (e.g. deleted in another tab)
+  if (!updated || updated.length === 0) {
+    await rollbackCategory()
+    throw new Error('Produto não encontrado.')
   }
 
   revalidatePath('/settings/pricing')
