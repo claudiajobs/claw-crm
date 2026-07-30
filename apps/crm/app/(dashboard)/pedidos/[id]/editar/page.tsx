@@ -102,7 +102,7 @@ export default async function EditPedidoPage({ params }: EditPedidoPageProps) {
     contact?.tier ??
     (itemsRes.data ?? []).find((r) => r.tier_slug)?.tier_slug ??
     tiers[0]?.slug ??
-    'standard'
+    null
 
   const initialItems: CartItem[] = (itemsRes.data ?? []).map((row) => {
     const variant = Array.isArray(row.variant) ? row.variant[0] : row.variant

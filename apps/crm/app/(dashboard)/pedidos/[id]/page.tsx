@@ -68,10 +68,10 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
     .single()
   const isAdmin = profile?.role === 'admin'
   const canShare = isAdmin || profile?.role === 'editor' || pedido.owner_id === user.id
-  // Edit is owner-or-admin; cancel is any authenticated user. Neither applies
-  // to an already-cancelled pedido.
+  // Edit and cancel are owner-or-admin. Neither applies to an
+  // already-cancelled pedido.
   const canEdit = (isAdmin || pedido.owner_id === user.id) && pedido.status !== 'cancelled'
-  const canCancel = pedido.status !== 'cancelled'
+  const canCancel = (isAdmin || pedido.owner_id === user.id) && pedido.status !== 'cancelled'
 
   const [shares, allUsers] = canShare
     ? await Promise.all([getPedidoShares(id), getActiveUsers()])

@@ -353,7 +353,8 @@ export async function cancelPedido(pedidoId: string): Promise<void> {
     .neq('status', 'cancelled')
 
   if (error) {
-    throw new Error(`Failed to cancel pedido: ${error.message}`)
+    console.error('cancelPedido: update failed:', error.message)
+    throw new Error('Erro ao cancelar o pedido. Tente novamente.')
   }
 
   revalidatePath(`/pedidos/${pedidoId}`)
@@ -415,7 +416,8 @@ export async function updatePedido(
     .in('id', variantIds)
 
   if (variantError) {
-    throw new Error(`Failed to validate items: ${variantError.message}`)
+    console.error('updatePedido: variant validation failed:', variantError.message)
+    throw new Error('Erro ao validar os itens do pedido.')
   }
 
   const activeVariantIds = new Set(
@@ -476,12 +478,14 @@ export async function updatePedido(
     .delete()
     .eq('pedido_id', pedidoId)
   if (deleteError) {
-    throw new Error(`Failed to update items: ${deleteError.message}`)
+    console.error('updatePedido: item delete failed:', deleteError.message)
+    throw new Error('Erro ao atualizar os itens. Tente novamente.')
   }
 
   const { error: insertError } = await supabase.from('pedido_items').insert(rows)
   if (insertError) {
-    throw new Error(`Failed to update items: ${insertError.message}`)
+    console.error('updatePedido: item insert failed:', insertError.message)
+    throw new Error('Erro ao atualizar os itens. Tente novamente.')
   }
 
   // Approval algorithm — same rule as submitPedido, re-run from scratch
@@ -501,12 +505,21 @@ export async function updatePedido(
     pedidoUpdate.notes = data.notes.trim() || null
   }
 
-  const { error: updateError } = await supabase
+  // The cancelled check above ran before the item rewrite — a concurrent
+  // cancelPedido could have landed since. The status filter here makes the
+  // write itself refuse to resurrect a cancelled pedido.
+  const { data: updatedRows, error: updateError } = await supabase
     .from('pedidos')
     .update(pedidoUpdate)
     .eq('id', pedidoId)
+    .neq('status', 'cancelled')
+    .select('id')
   if (updateError) {
-    throw new Error(`Failed to update pedido: ${updateError.message}`)
+    console.error('updatePedido: pedido update failed:', updateError.message)
+    throw new Error('Erro ao salvar o pedido. Tente novamente.')
+  }
+  if (!updatedRows || updatedRows.length === 0) {
+    throw new Error('Este pedido foi cancelado e não pode ser editado.')
   }
 
   await recalculatePedidoTotal(pedidoId)

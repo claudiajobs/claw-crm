@@ -19,7 +19,7 @@ interface PedidoEditFormProps {
   contact: { name: string; tier: string | null } | null
   initialNotes: string
   initialItems: CartItem[]
-  initialTier: string
+  initialTier: string | null
   tiers: Array<{ slug: string; name: string }>
   allVariants: PrefetchedVariant[]
   priceMap: Record<string, number>
@@ -297,7 +297,7 @@ export default function PedidoEditForm({
               <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-gray-600)' }}>Faixa de preço</label>
               <select
                 className="input w-full"
-                value={tier}
+                value={tier ?? ''}
                 onChange={(e) => setTier(e.target.value)}
                 style={{ marginTop: 4 }}
               >
