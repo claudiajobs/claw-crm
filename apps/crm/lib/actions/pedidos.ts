@@ -317,7 +317,7 @@ export async function cancelPedido(pedidoId: string): Promise<void> {
 
   const { data: pedido, error: fetchError } = await supabase
     .from('pedidos')
-    .select('id, status')
+    .select('id, status, owner_id')
     .eq('id', pedidoId)
     .single()
 
@@ -326,6 +326,17 @@ export async function cancelPedido(pedidoId: string): Promise<void> {
   }
   if (pedido.status === 'cancelled') {
     throw new Error('Este pedido já foi cancelado')
+  }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const isAdmin = profile?.role === 'admin'
+
+  if (!isAdmin && pedido.owner_id !== user.id) {
+    throw new Error('Você não tem permissão para cancelar este pedido.')
   }
 
   const { error } = await supabase
