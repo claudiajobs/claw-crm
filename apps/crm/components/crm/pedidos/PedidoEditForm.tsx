@@ -61,7 +61,7 @@ export default function PedidoEditForm({
   const [drawerItemIndex, setDrawerItemIndex] = useState<number | null>(null)
 
   // Tier for NEW items: contact's membership (when present) or manual selection
-  const effectiveTier = contact?.tier || tier || 'standard'
+  const effectiveTier = contact?.tier || tier || tiers[0]?.slug || ''
 
   // ─── Client-side product filtering ──────────────────────────────────────────
 

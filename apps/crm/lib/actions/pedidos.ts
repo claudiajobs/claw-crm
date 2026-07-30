@@ -431,7 +431,16 @@ export async function updatePedido(
 
   // Validate and price every item BEFORE deleting the existing ones, so a
   // pricing or permission failure can't leave the pedido stripped of items.
-  const rows = []
+  const rows: Array<{
+    pedido_id: string
+    variant_id: string
+    quantity: number
+    unit_price: number
+    discount_pct: number
+    total: number
+    price_mode: string
+    tier_slug: string | null
+  }> = []
   for (const item of data.items) {
     if (!activeVariantIds.has(item.variantId)) {
       throw new Error('Um dos produtos não está mais disponível.')
