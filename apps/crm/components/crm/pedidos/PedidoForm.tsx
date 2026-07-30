@@ -16,7 +16,7 @@ interface PrefetchedContact {
   membership_tier: string | null
 }
 
-interface PrefetchedVariant {
+export interface PrefetchedVariant {
   id: string
   sku: string
   name: string
@@ -41,9 +41,9 @@ interface SelectedContact {
   tier: string | null
 }
 
-type PriceMode = 'tier' | 'override'
+export type PriceMode = 'tier' | 'override'
 
-interface CartItem {
+export interface CartItem {
   variantId: string
   variantName: string
   productName: string
@@ -60,7 +60,7 @@ const MAX_DROPDOWN_ITEMS = 50
 
 // ─── Tier badge color helper ────────────────────────────────────────────────
 
-function tierBadgeClass(tier: string): string {
+export function tierBadgeClass(tier: string): string {
   switch (tier) {
     case 'golden': return 'badge badge-sq badge-amber'
     case 'platinum': return 'badge badge-sq badge-purple'
@@ -884,7 +884,7 @@ export default function PedidoForm({
 
 // ─── Mobile Item Drawer (Bottom Sheet) ──────────────────────────────────────
 
-function MobileItemDrawer({
+export function MobileItemDrawer({
   item,
   index,
   isAdmin,

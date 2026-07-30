@@ -1,9 +1,10 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { IconArrowLeft, IconPrinter } from '@tabler/icons-react'
+import { IconArrowLeft, IconPrinter, IconPencil } from '@tabler/icons-react'
 import PedidoActions from '@/components/crm/pedidos/PedidoActions'
 import PedidoSharePanel from '@/components/crm/pedidos/PedidoSharePanel'
+import CancelPedidoButton from '@/components/crm/pedidos/CancelPedidoButton'
 import { getPedidoShares, getActiveUsers } from '@/lib/actions/pedido-shares'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -67,6 +68,10 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
     .single()
   const isAdmin = profile?.role === 'admin'
   const canShare = isAdmin || profile?.role === 'editor' || pedido.owner_id === user.id
+  // Edit and cancel are owner-or-admin. Neither applies to an
+  // already-cancelled pedido.
+  const canEdit = (isAdmin || pedido.owner_id === user.id) && pedido.status !== 'cancelled'
+  const canCancel = (isAdmin || pedido.owner_id === user.id) && pedido.status !== 'cancelled'
 
   const [shares, allUsers] = canShare
     ? await Promise.all([getPedidoShares(id), getActiveUsers()])
@@ -265,6 +270,17 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
             <IconPrinter size={16} stroke={1.5} aria-hidden />
             Imprimir / Baixar PDF
           </Link>
+          {canEdit && (
+            <Link
+              href={`/pedidos/${pedido.id}/editar`}
+              className="btn btn-ghost"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            >
+              <IconPencil size={16} stroke={1.5} aria-hidden />
+              Editar pedido
+            </Link>
+          )}
+          {canCancel && <CancelPedidoButton pedidoId={pedido.id} />}
         </div>
 
         {/* Share panel */}

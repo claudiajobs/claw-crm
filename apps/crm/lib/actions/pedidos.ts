@@ -24,6 +24,15 @@ interface AddItemData {
   overridePrice?: number
 }
 
+interface UpdatePedidoItemData {
+  variantId: string
+  quantity: number
+  membershipTier: string
+  discountPct?: number
+  priceMode: 'tier' | 'override'
+  overridePrice?: number
+}
+
 // ─── WhatsApp notification hook ──────────────────────────────────────────────
 
 async function notifyPendingApproval(pedido: {
@@ -292,6 +301,263 @@ export async function rejectPedido(
 
   revalidatePath(`/pedidos/${pedidoId}`)
   revalidatePath('/pedidos')
+}
+
+export async function cancelPedido(pedidoId: string): Promise<void> {
+  // Auth client (not service) — cancellation requires an authenticated caller
+  const auth = await createClient()
+  const {
+    data: { user },
+  } = await auth.auth.getUser()
+  if (!user) {
+    throw new Error('Não autenticado')
+  }
+
+  const supabase = createServiceClient()
+
+  const { data: pedido, error: fetchError } = await supabase
+    .from('pedidos')
+    .select('id, status, owner_id')
+    .eq('id', pedidoId)
+    .single()
+
+  if (fetchError || !pedido) {
+    throw new Error('Pedido não encontrado')
+  }
+  if (pedido.status === 'cancelled') {
+    throw new Error('Este pedido já foi cancelado')
+  }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const isAdmin = profile?.role === 'admin'
+
+  if (!isAdmin && pedido.owner_id !== user.id) {
+    throw new Error('Você não tem permissão para cancelar este pedido.')
+  }
+
+  const { error } = await supabase
+    .from('pedidos')
+    .update({
+      status: 'cancelled',
+      approved_by: null,
+      approved_at: null,
+      rejected_by: null,
+      rejected_at: null,
+      rejected_reason: null,
+    })
+    .eq('id', pedidoId)
+    .neq('status', 'cancelled')
+
+  if (error) {
+    console.error('cancelPedido: update failed:', error.message)
+    throw new Error('Erro ao cancelar o pedido. Tente novamente.')
+  }
+
+  revalidatePath(`/pedidos/${pedidoId}`)
+  revalidatePath('/pedidos')
+}
+
+export async function updatePedido(
+  pedidoId: string,
+  data: {
+    notes?: string
+    items: UpdatePedidoItemData[]
+  }
+): Promise<{ status: string }> {
+  // Auth client (not service) — we need the caller's identity for the
+  // owner/admin check
+  const auth = await createClient()
+  const {
+    data: { user },
+  } = await auth.auth.getUser()
+  if (!user) {
+    throw new Error('Não autenticado')
+  }
+
+  const supabase = createServiceClient()
+
+  const { data: pedido, error: fetchError } = await supabase
+    .from('pedidos')
+    .select('id, status, owner_id, contact_id, contacts(first_name, last_name)')
+    .eq('id', pedidoId)
+    .single()
+
+  if (fetchError || !pedido) {
+    throw new Error('Pedido não encontrado')
+  }
+  if (pedido.status === 'cancelled') {
+    throw new Error('Pedidos cancelados não podem ser editados')
+  }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const isAdmin = profile?.role === 'admin'
+
+  if (!isAdmin && pedido.owner_id !== user.id) {
+    throw new Error('Apenas o dono do pedido ou um administrador pode editá-lo')
+  }
+
+  if (data.items.length === 0) {
+    throw new Error('O pedido precisa de pelo menos um item')
+  }
+
+  // Same server-side guard as addItem — reject variants of deactivated products
+  const variantIds = [...new Set(data.items.map((i) => i.variantId))]
+  const { data: variantRows, error: variantError } = await supabase
+    .from('product_variants')
+    .select('id, active, products(active)')
+    .in('id', variantIds)
+
+  if (variantError) {
+    console.error('updatePedido: variant validation failed:', variantError.message)
+    throw new Error('Erro ao validar os itens do pedido.')
+  }
+
+  const activeVariantIds = new Set(
+    (variantRows ?? [])
+      .filter((v) => {
+        const product = Array.isArray(v.products) ? v.products[0] : v.products
+        return v.active && product?.active
+      })
+      .map((v) => v.id)
+  )
+
+  // Validate and price every item BEFORE deleting the existing ones, so a
+  // pricing or permission failure can't leave the pedido stripped of items.
+  const rows: Array<{
+    pedido_id: string
+    variant_id: string
+    quantity: number
+    unit_price: number
+    discount_pct: number
+    total: number
+    price_mode: string
+    tier_slug: string | null
+  }> = []
+  for (const item of data.items) {
+    if (!activeVariantIds.has(item.variantId)) {
+      throw new Error('Um dos produtos não está mais disponível.')
+    }
+    if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+      throw new Error('Quantidade inválida')
+    }
+
+    const discountPct = item.discountPct ?? 0
+    if (!Number.isFinite(discountPct) || discountPct < 0 || discountPct > 100) {
+      throw new Error('Desconto inválido')
+    }
+
+    let unitPrice: number
+    if (item.priceMode === 'override') {
+      // Manual override is admin-only — enforce server-side
+      if (!isAdmin) {
+        throw new Error('Apenas administradores podem definir preço manual')
+      }
+      unitPrice = item.overridePrice ?? 0
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        throw new Error('Preço manual inválido')
+      }
+    } else {
+      unitPrice = await getPrice(item.variantId, item.membershipTier)
+    }
+
+    const lineTotal = item.quantity * unitPrice * (1 - discountPct / 100)
+    rows.push({
+      pedido_id: pedidoId,
+      variant_id: item.variantId,
+      quantity: item.quantity,
+      unit_price: unitPrice,
+      discount_pct: discountPct,
+      total: Math.round(lineTotal * 100) / 100,
+      price_mode: item.priceMode,
+      tier_slug: item.priceMode === 'override' ? null : item.membershipTier,
+    })
+  }
+
+  // Replace all items
+  const { error: deleteError } = await supabase
+    .from('pedido_items')
+    .delete()
+    .eq('pedido_id', pedidoId)
+  if (deleteError) {
+    console.error('updatePedido: item delete failed:', deleteError.message)
+    throw new Error('Erro ao atualizar os itens. Tente novamente.')
+  }
+
+  const { error: insertError } = await supabase.from('pedido_items').insert(rows)
+  if (insertError) {
+    console.error('updatePedido: item insert failed:', insertError.message)
+    throw new Error('Erro ao atualizar os itens. Tente novamente.')
+  }
+
+  // Approval algorithm — same rule as submitPedido, re-run from scratch
+  const hasDiscount = rows.some((r) => r.discount_pct > 0)
+  const hasPriceOverride = rows.some((r) => r.price_mode === 'override')
+  const newStatus = hasDiscount || hasPriceOverride ? 'pending_approval' : 'approved'
+
+  const pedidoUpdate: Record<string, unknown> = {
+    status: newStatus,
+    approved_by: null,
+    approved_at: null,
+    rejected_by: null,
+    rejected_at: null,
+    rejected_reason: null,
+  }
+  if (data.notes !== undefined) {
+    pedidoUpdate.notes = data.notes.trim() || null
+  }
+
+  // The cancelled check above ran before the item rewrite — a concurrent
+  // cancelPedido could have landed since. The status filter here makes the
+  // write itself refuse to resurrect a cancelled pedido.
+  const { data: updatedRows, error: updateError } = await supabase
+    .from('pedidos')
+    .update(pedidoUpdate)
+    .eq('id', pedidoId)
+    .neq('status', 'cancelled')
+    .select('id')
+  if (updateError) {
+    console.error('updatePedido: pedido update failed:', updateError.message)
+    throw new Error('Erro ao salvar o pedido. Tente novamente.')
+  }
+  if (!updatedRows || updatedRows.length === 0) {
+    throw new Error('Este pedido foi cancelado e não pode ser editado.')
+  }
+
+  await recalculatePedidoTotal(pedidoId)
+
+  if (newStatus === 'pending_approval') {
+    const { data: updated } = await supabase
+      .from('pedidos')
+      .select('total, discount_pct')
+      .eq('id', pedidoId)
+      .single()
+
+    const contact = Array.isArray(pedido.contacts)
+      ? pedido.contacts[0]
+      : pedido.contacts
+    const contactName = contact
+      ? [contact.first_name, contact.last_name].filter(Boolean).join(' ')
+      : 'Desconhecido'
+
+    void notifyPendingApproval({
+      id: pedidoId,
+      contactName,
+      total: Number(updated?.total ?? 0),
+      discountPct: Number(updated?.discount_pct ?? 0),
+    })
+  }
+
+  revalidatePath(`/pedidos/${pedidoId}`)
+  revalidatePath('/pedidos')
+  return { status: newStatus }
 }
 
 export async function closeLeadOutcome(
