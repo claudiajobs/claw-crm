@@ -112,7 +112,7 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
             .print-totals { margin-left: auto; width: 280px; }
             .print-totals tr td { padding: 6px 10px; }
             .print-totals .grand td { font-weight: 700; font-size: 15px; border-top: 2px solid #222; }
-            .print-notes { margin-bottom: 24px; padding: 12px 16px; background: #fffbe6; border: 1px solid #ffe082; border-radius: 6px; }
+            .print-notes, .print-address { margin-bottom: 24px; padding: 12px 16px; background: #fffbe6; border: 1px solid #ffe082; border-radius: 6px; }
             .print-footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #888; text-align: center; }
             .print-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; font-size: 14px; font-weight: 600; background: #222; color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 24px; }
             .print-btn:hover { background: #444; }
@@ -210,6 +210,13 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
             </tr>
           </tbody>
         </table>
+
+        {pedido.delivery_address && (
+          <div className="print-address">
+            <h2>Endereço de entrega</h2>
+            <p style={{ whiteSpace: 'pre-wrap' }}>{pedido.delivery_address}</p>
+          </div>
+        )}
 
         {pedido.notes && (
           <div className="print-notes">

@@ -13,6 +13,7 @@ interface CreatePedidoData {
   leadId?: string
   ownerId: string
   notes?: string
+  deliveryAddress?: string
 }
 
 interface AddItemData {
@@ -96,6 +97,7 @@ export async function createPedido(data: CreatePedidoData) {
       owner_id: data.ownerId,
       status: 'draft',
       notes: data.notes ?? null,
+      delivery_address: data.deliveryAddress ?? null,
     })
     .select('id')
     .single()
@@ -365,6 +367,7 @@ export async function updatePedido(
   pedidoId: string,
   data: {
     notes?: string
+    deliveryAddress?: string
     items: UpdatePedidoItemData[]
   }
 ): Promise<{ status: string }> {
@@ -512,6 +515,9 @@ export async function updatePedido(
   }
   if (data.notes !== undefined) {
     pedidoUpdate.notes = data.notes.trim() || null
+  }
+  if (data.deliveryAddress !== undefined) {
+    pedidoUpdate.delivery_address = data.deliveryAddress.trim() || null
   }
 
   // The cancelled check above ran before the item rewrite — a concurrent
