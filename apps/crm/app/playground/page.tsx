@@ -1,3 +1,4 @@
+import Clock from './Clock'
 import Counter from './Counter'
 
 export const dynamic = 'force-dynamic'
@@ -24,6 +25,7 @@ export default function PlaygroundPage() {
       <p style={{ color: '#666', fontSize: '0.875rem' }}>
         Sandbox route — automated toy tickets land here.
       </p>
+      <Clock />
       <p style={{ color: '#999', fontSize: '0.75rem', fontFamily: 'monospace' }}>
         rendered at {builtAt}
       </p>
