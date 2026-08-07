@@ -99,6 +99,7 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
             .print-page h1 { font-size: 20px; font-weight: 700; }
             .print-page h2 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
             .print-header { text-align: center; border-bottom: 2px solid #222; padding-bottom: 16px; margin-bottom: 24px; }
+            .print-logo { display: block; max-width: 180px; height: auto; margin: 0 auto 8px; }
             .print-header p { font-size: 11px; color: #555; margin-top: 4px; }
             .print-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
             .print-meta h1 { margin-bottom: 4px; }
@@ -124,6 +125,14 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
         <PrintButton />
 
         <div className="print-header">
+          {/* eslint-disable-next-line @next/next/no-img-element -- next/image lazy-loads, which can leave the logo unrendered in the print snapshot */}
+          <img
+            className="print-logo"
+            src="/goodtime-logo.png"
+            alt="Goodtime do Brasil"
+            width={479}
+            height={118}
+          />
           <h1>Goodtime do Brasil</h1>
           <p>Rua 446, nº 659 — Morretes, Itapema/SC | (47) 99737-9299 | CNPJ: 60.330.989/0001-23</p>
         </div>
