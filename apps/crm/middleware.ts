@@ -4,15 +4,21 @@ import { createServerClient } from '@supabase/ssr'
 
 const PUBLIC_PATHS = ['/login', '/signup', '/pending', '/forgot-password', '/reset-password']
 
+// Reachable whether or not there is a session, and never redirected away from.
+const OPEN_PATHS = ['/playground']
+
 export async function middleware(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request)
 
   const pathname = request.nextUrl.pathname
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+  const isOpen = OPEN_PATHS.some((p) => pathname.startsWith(p))
   const isApi = pathname.startsWith('/api/')
 
   // API routes handled by their own middleware (sdr-middleware)
   if (isApi) return supabaseResponse
+
+  if (isOpen) return supabaseResponse
 
   if (!user && !isPublic) {
     const loginUrl = request.nextUrl.clone()
