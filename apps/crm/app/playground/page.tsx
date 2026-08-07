@@ -1,3 +1,5 @@
+import Counter from './Counter'
+
 export const dynamic = 'force-dynamic'
 
 // Sandbox route for the ticket-loop automation. Automated tickets labelled `toy`
@@ -25,6 +27,7 @@ export default function PlaygroundPage() {
       <p style={{ color: '#999', fontSize: '0.75rem', fontFamily: 'monospace' }}>
         rendered at {builtAt}
       </p>
+      <Counter />
     </main>
   )
 }
