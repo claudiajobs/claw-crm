@@ -18,6 +18,7 @@ interface PedidoEditFormProps {
   pedidoId: string
   contact: { name: string; tier: string | null } | null
   initialNotes: string
+  initialDeliveryAddress: string
   initialItems: CartItem[]
   initialTier: string | null
   tiers: Array<{ slug: string; name: string }>
@@ -34,6 +35,7 @@ export default function PedidoEditForm({
   pedidoId,
   contact,
   initialNotes,
+  initialDeliveryAddress,
   initialItems,
   initialTier,
   tiers,
@@ -46,6 +48,7 @@ export default function PedidoEditForm({
   const [error, setError] = useState<string | null>(null)
 
   const [notes, setNotes] = useState(initialNotes)
+  const [deliveryAddress, setDeliveryAddress] = useState(initialDeliveryAddress)
   const [tier, setTier] = useState(initialTier)
   const [cart, setCart] = useState<CartItem[]>(initialItems)
 
@@ -226,6 +229,7 @@ export default function PedidoEditForm({
       try {
         await updatePedido(pedidoId, {
           notes,
+          deliveryAddress,
           items: cart.map((item) => ({
             variantId: item.variantId,
             quantity: item.quantity,
@@ -317,6 +321,18 @@ export default function PedidoEditForm({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               style={{ marginTop: 4 }}
+            />
+          </div>
+
+          <div className="w-full md:flex-1 md:min-w-[200px]">
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-gray-600)' }}>Endereço de entrega</label>
+            <textarea
+              className="input w-full"
+              placeholder="Opcional"
+              rows={2}
+              value={deliveryAddress}
+              onChange={(e) => setDeliveryAddress(e.target.value)}
+              style={{ marginTop: 4, resize: 'vertical' }}
             />
           </div>
         </div>

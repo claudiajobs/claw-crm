@@ -113,6 +113,7 @@ export default function PedidoForm({
   // Lead & form state
   const [leadId] = useState(prefillLead?.id ?? '')
   const [notes, setNotes] = useState('')
+  const [deliveryAddress, setDeliveryAddress] = useState('')
   const [tier, setTier] = useState(tiers[0]?.slug ?? '')
 
   // Cart
@@ -357,6 +358,7 @@ export default function PedidoForm({
           leadId: leadId || undefined,
           ownerId: userId,
           notes: notes || undefined,
+          deliveryAddress: deliveryAddress.trim() || undefined,
         })
 
         for (const item of cart) {
@@ -568,6 +570,18 @@ export default function PedidoForm({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               style={{ marginTop: 4 }}
+            />
+          </div>
+
+          <div className="w-full md:flex-1 md:min-w-[200px]">
+            <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-gray-600)' }}>Endereço de entrega</label>
+            <textarea
+              className="input w-full"
+              placeholder="Opcional"
+              rows={2}
+              value={deliveryAddress}
+              onChange={(e) => setDeliveryAddress(e.target.value)}
+              style={{ marginTop: 4, resize: 'vertical' }}
             />
           </div>
         </div>

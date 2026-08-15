@@ -210,6 +210,14 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
                 <dd style={{ marginTop: 2, fontSize: 13, color: '#C44040' }}>{pedido.rejected_reason}</dd>
               </div>
             )}
+            {pedido.delivery_address && (
+              <div style={{ gridColumn: '1 / -1' }}>
+                <dt style={dtStyle}>Endereço de entrega</dt>
+                <dd style={{ marginTop: 2, fontSize: 13, color: 'var(--color-gray-600)', whiteSpace: 'pre-wrap' }}>
+                  {pedido.delivery_address}
+                </dd>
+              </div>
+            )}
             {pedido.notes && (
               <div style={{ gridColumn: '1 / -1' }}>
                 <dt style={dtStyle}>Observações</dt>

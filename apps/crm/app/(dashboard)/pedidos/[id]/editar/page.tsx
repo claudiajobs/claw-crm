@@ -20,7 +20,7 @@ export default async function EditPedidoPage({ params }: EditPedidoPageProps) {
 
   const { data: pedido } = await svc
     .from('pedidos')
-    .select('id, status, owner_id, notes, contact:contacts(id, first_name, last_name, membership_tier)')
+    .select('id, status, owner_id, notes, delivery_address, contact:contacts(id, first_name, last_name, membership_tier)')
     .eq('id', id)
     .single()
 
@@ -159,6 +159,7 @@ export default async function EditPedidoPage({ params }: EditPedidoPageProps) {
         pedidoId={id}
         contact={contact}
         initialNotes={pedido.notes ?? ''}
+        initialDeliveryAddress={pedido.delivery_address ?? ''}
         initialItems={initialItems}
         initialTier={fallbackTier}
         tiers={tiers}
