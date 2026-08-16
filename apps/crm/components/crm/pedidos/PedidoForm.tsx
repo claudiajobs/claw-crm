@@ -863,7 +863,7 @@ export default function PedidoForm({
         )}
       </div>
 
-      {/* ─── Mobile Item Drawer (bottom sheet) ─────────────────────────────── */}
+      {/* ─── Mobile Item Drawer (centred modal) ────────────────────────────── */}
       {drawerItemIndex !== null && cart[drawerItemIndex] && (
         <MobileItemDrawer
           item={cart[drawerItemIndex]}
@@ -896,7 +896,7 @@ export default function PedidoForm({
   )
 }
 
-// ─── Mobile Item Drawer (Bottom Sheet) ──────────────────────────────────────
+// ─── Mobile Item Drawer (Centred Modal) ─────────────────────────────────────
 
 export function MobileItemDrawer({
   item,
@@ -936,13 +936,14 @@ export function MobileItemDrawer({
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
         background: 'rgba(0,0,0,0.4)', display: 'flex',
-        alignItems: 'flex-end', justifyContent: 'center',
+        alignItems: 'center', justifyContent: 'center', padding: 16,
       }}
     >
       <div style={{
-        background: '#fff', borderRadius: '16px 16px 0 0', width: '100%',
-        maxWidth: 480, padding: 20, paddingBottom: 32,
-        animation: 'slideUp 0.2s ease-out',
+        background: '#fff', borderRadius: 16, width: '100%',
+        maxWidth: 480, padding: 20,
+        maxHeight: 'calc(100vh - 32px)', overflowY: 'auto',
+        animation: 'modalIn 0.2s ease-out',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
