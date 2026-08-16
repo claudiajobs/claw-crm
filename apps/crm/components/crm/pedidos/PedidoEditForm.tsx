@@ -593,7 +593,7 @@ export default function PedidoEditForm({
         )}
       </div>
 
-      {/* ─── Mobile Item Drawer (bottom sheet) ─────────────────────────────── */}
+      {/* ─── Mobile Item Drawer (centred modal) ────────────────────────────── */}
       {drawerItemIndex !== null && cart[drawerItemIndex] && (
         <MobileItemDrawer
           item={cart[drawerItemIndex]}
