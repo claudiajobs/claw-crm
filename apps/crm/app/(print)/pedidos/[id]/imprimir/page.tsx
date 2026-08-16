@@ -133,7 +133,6 @@ export default async function ImprimirPage({ params }: ImprimirPageProps) {
             width={479}
             height={118}
           />
-          <h1>Goodtime do Brasil</h1>
           <p>Rua 446, nº 659 — Morretes, Itapema/SC | (47) 99737-9299 | CNPJ: 60.330.989/0001-23</p>
         </div>
 
