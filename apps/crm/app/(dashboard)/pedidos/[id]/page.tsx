@@ -5,6 +5,7 @@ import { IconArrowLeft, IconPrinter, IconPencil } from '@tabler/icons-react'
 import PedidoActions from '@/components/crm/pedidos/PedidoActions'
 import PedidoSharePanel from '@/components/crm/pedidos/PedidoSharePanel'
 import CancelPedidoButton from '@/components/crm/pedidos/CancelPedidoButton'
+import CreateLeadButton from '@/components/crm/pedidos/CreateLeadButton'
 import { getPedidoShares, getActiveUsers } from '@/lib/actions/pedido-shares'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -72,6 +73,9 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
   // already-cancelled pedido.
   const canEdit = (isAdmin || pedido.owner_id === user.id) && pedido.status !== 'cancelled'
   const canCancel = (isAdmin || pedido.owner_id === user.id) && pedido.status !== 'cancelled'
+  // Criar lead: owner-ou-admin, só faz sentido com cliente e sem lead vinculado.
+  const canCreateLead =
+    (isAdmin || pedido.owner_id === user.id) && !pedido.lead_id && !!pedido.contact_id
 
   const [shares, allUsers] = canShare
     ? await Promise.all([getPedidoShares(id), getActiveUsers()])
@@ -288,6 +292,7 @@ export default async function PedidoPage({ params }: PedidoPageProps) {
               Editar pedido
             </Link>
           )}
+          {canCreateLead && <CreateLeadButton pedidoId={pedido.id} />}
           {canCancel && <CancelPedidoButton pedidoId={pedido.id} />}
         </div>
 
