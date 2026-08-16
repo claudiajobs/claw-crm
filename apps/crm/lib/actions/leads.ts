@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { computeLeadScore } from '@/lib/scoring/scoring-engine'
 import type { LeadScoringInput } from '@/lib/scoring/scoring-rules.config'
 
@@ -153,6 +154,108 @@ export async function createLead(formData: FormData) {
 
   revalidatePath('/leads')
   redirect('/leads')
+}
+
+export async function createLeadFromPedido(
+  pedidoId: string
+): Promise<{ leadId: string }> {
+  // Auth client (not service) — criar lead exige um chamador autenticado
+  const auth = await createClient()
+  const {
+    data: { user },
+  } = await auth.auth.getUser()
+  if (!user) {
+    throw new Error('Não autenticado')
+  }
+
+  const supabase = createServiceClient()
+
+  const { data: pedido, error: fetchError } = await supabase
+    .from('pedidos')
+    .select(
+      'id, contact_id, lead_id, owner_id, total, status, contact:contacts(first_name, last_name)'
+    )
+    .eq('id', pedidoId)
+    .single()
+
+  if (fetchError || !pedido) {
+    throw new Error('Pedido não encontrado')
+  }
+  if (pedido.lead_id) {
+    throw new Error('Este pedido já tem um lead.')
+  }
+  if (!pedido.contact_id) {
+    throw new Error('Pedido sem cliente — não é possível criar lead.')
+  }
+
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const isAdmin = profile?.role === 'admin'
+
+  if (!isAdmin && pedido.owner_id !== user.id) {
+    throw new Error('Você não tem permissão para criar um lead a partir deste pedido.')
+  }
+
+  const contact = Array.isArray(pedido.contact) ? pedido.contact[0] : pedido.contact
+  const contactName =
+    [contact?.first_name, contact?.last_name].filter(Boolean).join(' ') || 'cliente'
+
+  const { data: lead, error: insertError } = await supabase
+    .from('leads')
+    .insert({
+      title: `Pedido — ${contactName}`,
+      contact_id: pedido.contact_id,
+      status: 'novo',
+      value: Number(pedido.total),
+      product_interest: [],
+      owner_id: pedido.owner_id,
+      created_by: user.id,
+      source: 'pedido',
+    })
+    .select('id')
+    .single()
+
+  if (insertError || !lead) {
+    console.error('createLeadFromPedido: insert failed:', insertError?.message)
+    throw new Error('Erro ao criar o lead. Tente novamente.')
+  }
+
+  // Vínculo condicional: se outro clique já ligou um lead a este pedido, a
+  // atualização não casa nenhuma linha e o lead recém-criado é descartado.
+  const { data: linked, error: linkError } = await supabase
+    .from('pedidos')
+    .update({ lead_id: lead.id })
+    .eq('id', pedidoId)
+    .is('lead_id', null)
+    .select('id')
+
+  if (linkError || !linked || linked.length === 0) {
+    await supabase.from('leads').delete().eq('id', lead.id)
+    if (linkError) {
+      console.error('createLeadFromPedido: link failed:', linkError.message)
+      throw new Error('Erro ao criar o lead. Tente novamente.')
+    }
+    throw new Error('Este pedido já tem um lead.')
+  }
+
+  const scoringInput = await fetchScoringInput(auth, pedido.contact_id, {
+    estimated_volume_liters: null,
+    decision_timeline: null,
+    project_type: null,
+    last_activity_at: null,
+  })
+  const { score } = computeLeadScore(scoringInput)
+  await supabase.from('leads').update({ score }).eq('id', lead.id)
+
+  revalidatePath(`/pedidos/${pedidoId}`)
+  revalidatePath('/pedidos')
+  revalidatePath('/leads')
+  revalidatePath('/pipeline')
+
+  return { leadId: lead.id }
 }
 
 export async function updateLeadStatus(leadId: string, status: LeadStatus) {
